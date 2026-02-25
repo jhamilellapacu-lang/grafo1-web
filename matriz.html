@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Matriz de Adyacencia</title>
+
+<style>
+body{
+  font-family: Arial;
+  text-align:center;
+  padding:40px;
+}
+
+table{
+  border-collapse: collapse;
+  margin:auto;
+}
+
+th,td{
+  border:1px solid black;
+  padding:10px;
+  text-align:center;
+}
+
+th{
+  background:#1b4079;
+  color:white;
+}
+</style>
+
+</head>
+<body>
+
+<h1>Matriz de Adyacencia</h1>
+
+<div id="matriz"></div>
+
+<script>
+
+function generarMatriz(){
+
+  const nodos = JSON.parse(localStorage.getItem("nodos")) || [];
+  const aristas = JSON.parse(localStorage.getItem("aristas")) || [];
+
+  if(nodos.length===0){
+    document.getElementById("matriz").innerHTML="No hay datos.";
+    return;
+  }
+
+  let matriz=[];
+
+  for(let i=0;i<nodos.length;i++){
+    matriz[i]=[];
+    for(let j=0;j<nodos.length;j++){
+      matriz[i][j]=0;
+    }
+  }
+
+  aristas.forEach(a=>{
+    const i=nodos.indexOf(a.from);
+    const j=nodos.indexOf(a.to);
+    if(i!==-1 && j!==-1){
+      matriz[i][j]=a.peso;
+    }
+  });
+
+  let tabla="<table>";
+  tabla+="<tr><th></th>";
+
+  nodos.forEach(n=>tabla+=`<th>${n}</th>`);
+  tabla+="</tr>";
+
+  for(let i=0;i<nodos.length;i++){
+    tabla+=`<tr><th>${nodos[i]}</th>`;
+    for(let j=0;j<nodos.length;j++){
+      tabla+=`<td>${matriz[i][j]}</td>`;
+    }
+    tabla+="</tr>";
+  }
+
+  tabla+="</table>";
+
+  document.getElementById("matriz").innerHTML=tabla;
+}
+
+generarMatriz();
+
+</script>
+
+</body>
+</html>
