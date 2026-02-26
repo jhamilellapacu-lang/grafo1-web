@@ -2,209 +2,168 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Matriz de Adyacencia Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;500;700&display=swap" rel="stylesheet">
+    <title>Matriz de Adyacencia Avanzada</title>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --primary: #4f46e5;
-            --secondary: #10b981;
-            --accent: #f59e0b;
-            --bg: #f8fafc;
-            --text: #1e293b;
+            --primary: #2563eb;
+            --secondary: #7c3aed;
+            --max-color: #f59e0b; /* Color para los valores máximos */
+            --bg: #f1f5f9;
         }
 
         body {
             font-family: 'Comfortaa', cursive;
             background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 40px;
+            padding: 20px;
+            color: #1e293b;
         }
 
-        h1 {
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 30px;
-        }
-
-        .container {
+        .main-card {
             background: white;
             padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            display: inline-block;
-            min-width: 60%;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 95%;
+            margin: auto;
         }
+
+        h1 { text-align: center; color: var(--primary); margin-bottom: 30px; }
 
         table {
             border-collapse: separate;
-            border-spacing: 0;
-            margin: auto;
+            border-spacing: 5px;
             width: 100%;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid #e2e8f0;
+            margin-bottom: 30px;
         }
 
         th, td {
-            padding: 15px;
-            text-align: center;
-            border-bottom: 1px solid #e2e8f0;
-            border-right: 1px solid #e2e8f0;
-        }
-
-        /* Estilo para encabezados principales */
-        th {
-            background: var(--primary);
-            color: white;
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 0.9em;
-        }
-
-        /* Estilos para las filas de cálculos */
-        .row-calc { background-color: #f1f5f9; font-weight: 600; color: var(--primary); }
-        .col-calc { background-color: #f1f5f9; font-weight: 600; color: var(--secondary); }
-        
-        /* Resaltado de los Máximos */
-        .max-highlight {
-            background: var(--accent) !important;
-            color: white !important;
+            padding: 12px;
             border-radius: 8px;
+            text-align: center;
         }
 
-        tr:last-child td { border-bottom: none; }
-        td:last-child, th:last-child { border-right: none; }
+        th { background: var(--primary); color: white; }
 
-        .stats-box {
-            margin-top: 25px;
+        /* Estilos para celdas de datos */
+        td { background: #f8fafc; border: 1px solid #e2e8f0; }
+
+        /* Estilos para filas/columnas de cálculos */
+        .calc-cell { background: #eef2ff; font-weight: bold; color: var(--secondary); }
+
+        /* Resaltado de máximo en la tabla */
+        .is-max {
+            background: var(--max-color) !important;
+            color: white !important;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+        }
+
+        /* Contenedor de indicadores inferiores */
+        .stats-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
         }
 
-        .stat-card {
-            padding: 15px;
-            border-radius: 12px;
-            background: #eff6ff;
-            border: 1px solid #dbeafe;
+        .stat-item {
+            padding: 20px;
+            border-radius: 15px;
+            background: white;
+            border: 2px solid var(--primary);
+            text-align: center;
         }
+
+        .stat-label { font-size: 0.8em; color: #64748b; display: block; margin-bottom: 5px; }
+        .stat-value { font-size: 1.5em; font-weight: bold; color: var(--primary); }
     </style>
 </head>
 <body>
 
-    <h1>Análisis de Matriz de Adyacencia</h1>
-
-    <div class="container">
-        <div id="matriz"></div>
-    </div>
+<div class="main-card">
+    <h1>Matriz de Adyacencia Estética</h1>
+    <div id="matriz-container"></div>
+    <div id="indicadores" class="stats-grid"></div>
+</div>
 
 <script>
-function generarMatriz() {
-    // Datos de prueba por si el localStorage está vacío
-    const nodos = JSON.parse(localStorage.getItem("nodos")) || ["A", "B", "C", "D"];
+function renderizarMatriz() {
+    // Datos de ejemplo (se cargan de localStorage o se usan estos por defecto)
+    const nodos = JSON.parse(localStorage.getItem("nodos")) || ["V1", "V2", "V3", "V4"];
     const aristas = JSON.parse(localStorage.getItem("aristas")) || [
-        {from: "A", to: "B", peso: 5},
-        {from: "B", to: "C", peso: 7},
-        {from: "C", to: "A", peso: 2},
-        {from: "D", to: "A", peso: 3}
+        {from: "V1", to: "V2", peso: 10},
+        {from: "V2", to: "V3", peso: 5},
+        {from: "V3", to: "V1", peso: 8},
+        {from: "V4", to: "V2", peso: 12}
     ];
 
-    if (nodos.length === 0) {
-        document.getElementById("matriz").innerHTML = "<p>No hay datos disponibles.</p>";
-        return;
-    }
-
     const n = nodos.length;
-    let matriz = Array.from({ length: n }, () => Array(n).fill(0));
+    let m = Array.from({ length: n }, () => Array(n).fill(0));
 
-    // Llenar matriz
     aristas.forEach(a => {
         const i = nodos.indexOf(a.from);
         const j = nodos.indexOf(a.to);
-        if (i !== -1 && j !== -1) matriz[i][j] = a.peso;
+        if(i !== -1 && j !== -1) m[i][j] = a.peso;
     });
 
-    // Cálculos de Filas
-    let sumaFilas = new Array(n).fill(0);
-    let conteoFilas = new Array(n).fill(0);
-    for (let i = 0; i < n; i++) {
-        for (let j = 0; j < n; j++) {
-            sumaFilas[i] += matriz[i][j];
-            if (matriz[i][j] !== 0) conteoFilas[i]++;
+    // Cálculos de FILAS (Suma y Conteo de números > 0)
+    let sumF = m.map(row => row.reduce((a, b) => a + b, 0));
+    let contF = m.map(row => row.filter(x => x !== 0).length);
+
+    // Cálculos de COLUMNAS (Suma y Conteo)
+    let sumC = Array(n).fill(0);
+    let contC = Array(n).fill(0);
+    for(let j=0; j<n; j++){
+        for(let i=0; i<n; i++){
+            sumC[j] += m[i][j];
+            if(m[i][j] !== 0) contC[j]++;
         }
     }
 
-    // Cálculos de Columnas
-    let sumaCols = new Array(n).fill(0);
-    let conteoCols = new Array(n).fill(0);
-    for (let j = 0; j < n; j++) {
-        for (let i = 0; i < n; i++) {
-            sumaCols[j] += matriz[i][j];
-            if (matriz[i][j] !== 0) conteoCols[j]++;
+    // Valores Máximos Absolutos
+    const maxSumaFila = Math.max(...sumF);
+    const maxSumaCol = Math.max(...sumC);
+    const maxContFila = Math.max(...contF);
+    const maxContCol = Math.max(...contC);
+
+    // CONSTRUIR TABLA
+    let html = `<table><tr><th>ID</th>`;
+    nodos.forEach(nod => html += `<th>${nod}</th>`);
+    html += `<th class="calc-cell">SUMA</th><th class="calc-cell">CANT</th></tr>`;
+
+    for(let i=0; i<n; i++){
+        html += `<tr><th>${nodos[i]}</th>`;
+        for(let j=0; j<n; j++){
+            html += `<td>${m[i][j]}</td>`;
         }
+        // Celdas de cálculos por fila con resaltado
+        html += `<td class="calc-cell ${sumF[i]===maxSumaFila ? 'is-max' : ''}">${sumF[i]}</td>`;
+        html += `<td class="calc-cell ${contF[i]===maxContFila ? 'is-max' : ''}">${contF[i]}</td></tr>`;
     }
 
-    // Valores Máximos
-    const maxSumaFila = Math.max(...sumaFilas);
-    const maxSumaCol = Math.max(...sumaCols);
-    const maxConteoFila = Math.max(...conteoFilas);
-    const maxConteoCol = Math.max(...conteoCols);
+    // Fila de Sumas de Columnas
+    html += `<tr><th class="calc-cell">SUMA Σ</th>`;
+    sumC.forEach(s => html += `<td class="calc-cell ${s===maxSumaCol ? 'is-max' : ''}">${s}</td>`);
+    html += `<td colspan="2" style="border:none"></td></tr>`;
 
-    // Construcción de la Tabla
-    let tabla = "<table>";
-    
-    // Encabezado
-    tabla += "<tr><th>NODOS</th>";
-    nodos.forEach(n => tabla += `<th>${n}</th>`);
-    tabla += "<th class='row-calc'>Suma Σ</th><th class='row-calc'>Cant. #</th></tr>";
+    // Fila de Conteos de Columnas
+    html += `<tr><th class="calc-cell">CANT #</th>`;
+    contC.forEach(c => html += `<td class="calc-cell ${c===maxContCol ? 'is-max' : ''}">${c}</td>`);
+    html += `<td colspan="2" style="border:none"></td></tr></table>`;
 
-    // Contenido de la Matriz
-    for (let i = 0; i < n; i++) {
-        tabla += `<tr><th>${nodos[i]}</th>`;
-        for (let j = 0; j < n; j++) {
-            tabla += `<td>${matriz[i][j]}</td>`;
-        }
-        // Celda de suma fila (con resaltado si es max)
-        const classSuma = sumaFilas[i] === maxSumaFila && maxSumaFila > 0 ? 'max-highlight' : '';
-        const classCant = conteoFilas[i] === maxConteoFila && maxConteoFila > 0 ? 'max-highlight' : '';
-        
-        tabla += `<td class="row-calc ${classSuma}">${sumaFilas[i]}</td>`;
-        tabla += `<td class="row-calc ${classCant}">${conteoFilas[i]}</td></tr>`;
-    }
+    document.getElementById("matriz-container").innerHTML = html;
 
-    // Fila de Sumatorias de Columnas
-    tabla += "<tr><th class='col-calc'>SUMA Σ</th>";
-    sumaCols.forEach(s => {
-        const isMax = s === maxSumaCol && maxSumaCol > 0 ? 'max-highlight' : '';
-        tabla += `<td class="col-calc ${isMax}">${s}</td>`;
-    });
-    tabla += `<td colspan='2' style='background:white'></td></tr>`;
-
-    // Fila de Conteo de Columnas
-    tabla += "<tr><th class='col-calc'>CANT. #</th>";
-    conteoCols.forEach(c => {
-        const isMax = c === maxConteoCol && maxConteoCol > 0 ? 'max-highlight' : '';
-        tabla += `<td class="col-calc ${isMax}">${c}</td>`;
-    });
-    tabla += `<td colspan='2' style='background:white'></td></tr>`;
-
-    tabla += "</table>";
-
-    // Resumen de máximos
-    let resumen = `
-        <div class="stats-box">
-            <div class="stat-card"><strong>Máx. Suma Filas:</strong> ${maxSumaFila}</div>
-            <div class="stat-card"><strong>Máx. Suma Columnas:</strong> ${maxSumaCol}</div>
-        </div>
+    // RENDERIZAR INDICADORES SOLICITADOS
+    document.getElementById("indicadores").innerHTML = `
+        <div class="stat-item"><span class="stat-label">MAX.CONT. FILAS</span><span class="stat-value">${maxContFila}</span></div>
+        <div class="stat-item"><span class="stat-label">MAX.CONT. COLUMNAS</span><span class="stat-value">${maxContCol}</span></div>
+        <div class="stat-item"><span class="stat-label">MAX. SUMA FILAS</span><span class="stat-value">${maxSumaFila}</span></div>
+        <div class="stat-item"><span class="stat-label">MAX. SUMA COLUMNAS</span><span class="stat-value">${maxSumaCol}</span></div>
     `;
-
-    document.getElementById("matriz").innerHTML = tabla + resumen;
 }
 
-generarMatriz();
+renderizarMatriz();
 </script>
-
 </body>
 </html>
