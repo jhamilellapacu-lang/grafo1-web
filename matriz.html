@@ -1,209 +1,90 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Matriz de Adyacencia Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;500;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<title>Matriz de Adyacencia</title>
 
-    <style>
-        :root {
-            --primary: #4f46e5;
-            --secondary: #10b981;
-            --accent: #f59e0b;
-            --bg: #f8fafc;
-            --text: #1e293b;
-        }
+<style>
+body{
+  font-family: Arial;
+  text-align:center;
+  padding:40px;
+}
 
-        body {
-            font-family: 'Comfortaa', cursive;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 40px;
-        }
+table{
+  border-collapse: collapse;
+  margin:auto;
+}
 
-        h1 {
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 30px;
-        }
+th,td{
+  border:1px solid black;
+  padding:10px;
+  text-align:center;
+}
 
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            display: inline-block;
-            min-width: 60%;
-        }
+th{
+  background:#1b4079;
+  color:white;
+}
+</style>
 
-        table {
-            border-collapse: separate;
-            border-spacing: 0;
-            margin: auto;
-            width: 100%;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid #e2e8f0;
-        }
-
-        th, td {
-            padding: 15px;
-            text-align: center;
-            border-bottom: 1px solid #e2e8f0;
-            border-right: 1px solid #e2e8f0;
-        }
-
-        /* Estilo para encabezados principales */
-        th {
-            background: var(--primary);
-            color: white;
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 0.9em;
-        }
-
-        /* Estilos para las filas de cálculos */
-        .row-calc { background-color: #f1f5f9; font-weight: 600; color: var(--primary); }
-        .col-calc { background-color: #f1f5f9; font-weight: 600; color: var(--secondary); }
-        
-        /* Resaltado de los Máximos */
-        .max-highlight {
-            background: var(--accent) !important;
-            color: white !important;
-            border-radius: 8px;
-        }
-
-        tr:last-child td { border-bottom: none; }
-        td:last-child, th:last-child { border-right: none; }
-
-        .stats-box {
-            margin-top: 25px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .stat-card {
-            padding: 15px;
-            border-radius: 12px;
-            background: #eff6ff;
-            border: 1px solid #dbeafe;
-        }
-    </style>
 </head>
 <body>
 
-    <h1>Análisis de Matriz de Adyacencia</h1>
+<h1>Matriz de Adyacencia</h1>
 
-    <div class="container">
-        <div id="matriz"></div>
-    </div>
+<div id="matriz"></div>
 
 <script>
-function generarMatriz() {
-    // Datos de prueba por si el localStorage está vacío
-    const nodos = JSON.parse(localStorage.getItem("nodos")) || ["A", "B", "C", "D"];
-    const aristas = JSON.parse(localStorage.getItem("aristas")) || [
-        {from: "A", to: "B", peso: 5},
-        {from: "B", to: "C", peso: 7},
-        {from: "C", to: "A", peso: 2},
-        {from: "D", to: "A", peso: 3}
-    ];
 
-    if (nodos.length === 0) {
-        document.getElementById("matriz").innerHTML = "<p>No hay datos disponibles.</p>";
-        return;
+function generarMatriz(){
+
+  const nodos = JSON.parse(localStorage.getItem("nodos")) || [];
+  const aristas = JSON.parse(localStorage.getItem("aristas")) || [];
+
+  if(nodos.length===0){
+    document.getElementById("matriz").innerHTML="No hay datos.";
+    return;
+  }
+
+  let matriz=[];
+
+  for(let i=0;i<nodos.length;i++){
+    matriz[i]=[];
+    for(let j=0;j<nodos.length;j++){
+      matriz[i][j]=0;
     }
+  }
 
-    const n = nodos.length;
-    let matriz = Array.from({ length: n }, () => Array(n).fill(0));
-
-    // Llenar matriz
-    aristas.forEach(a => {
-        const i = nodos.indexOf(a.from);
-        const j = nodos.indexOf(a.to);
-        if (i !== -1 && j !== -1) matriz[i][j] = a.peso;
-    });
-
-    // Cálculos de Filas
-    let sumaFilas = new Array(n).fill(0);
-    let conteoFilas = new Array(n).fill(0);
-    for (let i = 0; i < n; i++) {
-        for (let j = 0; j < n; j++) {
-            sumaFilas[i] += matriz[i][j];
-            if (matriz[i][j] !== 0) conteoFilas[i]++;
-        }
+  aristas.forEach(a=>{
+    const i=nodos.indexOf(a.from);
+    const j=nodos.indexOf(a.to);
+    if(i!==-1 && j!==-1){
+      matriz[i][j]=a.peso;
     }
+  });
 
-    // Cálculos de Columnas
-    let sumaCols = new Array(n).fill(0);
-    let conteoCols = new Array(n).fill(0);
-    for (let j = 0; j < n; j++) {
-        for (let i = 0; i < n; i++) {
-            sumaCols[j] += matriz[i][j];
-            if (matriz[i][j] !== 0) conteoCols[j]++;
-        }
+  let tabla="<table>";
+  tabla+="<tr><th></th>";
+
+  nodos.forEach(n=>tabla+=`<th>${n}</th>`);
+  tabla+="</tr>";
+
+  for(let i=0;i<nodos.length;i++){
+    tabla+=`<tr><th>${nodos[i]}</th>`;
+    for(let j=0;j<nodos.length;j++){
+      tabla+=`<td>${matriz[i][j]}</td>`;
     }
+    tabla+="</tr>";
+  }
 
-    // Valores Máximos
-    const maxSumaFila = Math.max(...sumaFilas);
-    const maxSumaCol = Math.max(...sumaCols);
-    const maxConteoFila = Math.max(...conteoFilas);
-    const maxConteoCol = Math.max(...conteoCols);
+  tabla+="</table>";
 
-    // Construcción de la Tabla
-    let tabla = "<table>";
-    
-    // Encabezado
-    tabla += "<tr><th>NODOS</th>";
-    nodos.forEach(n => tabla += `<th>${n}</th>`);
-    tabla += "<th class='row-calc'>Suma Σ</th><th class='row-calc'>Cant. #</th></tr>";
-
-    // Contenido de la Matriz
-    for (let i = 0; i < n; i++) {
-        tabla += `<tr><th>${nodos[i]}</th>`;
-        for (let j = 0; j < n; j++) {
-            tabla += `<td>${matriz[i][j]}</td>`;
-        }
-        // Celda de suma fila (con resaltado si es max)
-        const classSuma = sumaFilas[i] === maxSumaFila && maxSumaFila > 0 ? 'max-highlight' : '';
-        const classCant = conteoFilas[i] === maxConteoFila && maxConteoFila > 0 ? 'max-highlight' : '';
-        
-        tabla += `<td class="row-calc ${classSuma}">${sumaFilas[i]}</td>`;
-        tabla += `<td class="row-calc ${classCant}">${conteoFilas[i]}</td></tr>`;
-    }
-
-    // Fila de Sumatorias de Columnas
-    tabla += "<tr><th class='col-calc'>SUMA Σ</th>";
-    sumaCols.forEach(s => {
-        const isMax = s === maxSumaCol && maxSumaCol > 0 ? 'max-highlight' : '';
-        tabla += `<td class="col-calc ${isMax}">${s}</td>`;
-    });
-    tabla += `<td colspan='2' style='background:white'></td></tr>`;
-
-    // Fila de Conteo de Columnas
-    tabla += "<tr><th class='col-calc'>CANT. #</th>";
-    conteoCols.forEach(c => {
-        const isMax = c === maxConteoCol && maxConteoCol > 0 ? 'max-highlight' : '';
-        tabla += `<td class="col-calc ${isMax}">${c}</td>`;
-    });
-    tabla += `<td colspan='2' style='background:white'></td></tr>`;
-
-    tabla += "</table>";
-
-    // Resumen de máximos
-    let resumen = `
-        <div class="stats-box">
-            <div class="stat-card"><strong>Máx. Suma Filas:</strong> ${maxSumaFila}</div>
-            <div class="stat-card"><strong>Máx. Suma Columnas:</strong> ${maxSumaCol}</div>
-        </div>
-    `;
-
-    document.getElementById("matriz").innerHTML = tabla + resumen;
+  document.getElementById("matriz").innerHTML=tabla;
 }
 
 generarMatriz();
+
 </script>
 
 </body>
