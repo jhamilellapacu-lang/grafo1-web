@@ -1,60 +1,61 @@
-function generarMatrizPro(){
- const data=JSON.parse(localStorage.getItem("grafo"))||{nodos:[],aristas:[]};
- const nodos=data.nodos.map(n=>n.nombre);
- const aristas=data.aristas;
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Matriz de Adyacencia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #2196f3; --accent: #470f70; }
+        body { font-family: 'Comfortaa', sans-serif; padding: 40px; background: #f0f4f8; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { padding: 12px; border: 1px solid #eee; text-align: center; }
+        th { background: var(--accent); color: white; }
+        .max-cell { background: #ffeb3b; font-weight: bold; }
+        .summary { background: #e3f2fd; font-weight: bold; }
+        button { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Matriz de Adyacencia Dinámica</h1>
+        <button onclick="window.location.href='index.html'">⬅ Volver al Editor</button>
+        <div id="table-container"></div>
+    </div>
 
- const n=nodos.length;
- let matriz=Array.from({length:n},()=>Array(n).fill(0));
+    <script>
+        function render() {
+            const nodos = JSON.parse(localStorage.getItem("nodos_pro")) || [];
+            const aristas = JSON.parse(localStorage.getItem("aristas_pro")) || [];
+            const nNames = nodos.map(n => n.nombre);
+            const size = nNames.length;
+            
+            let matriz = Array.from({length: size}, () => Array(size).fill(0));
+            aristas.forEach(a => {
+                const i = nNames.indexOf(a.from);
+                const j = nNames.indexOf(a.to);
+                if(i !== -1 && j !== -1) matriz[i][j] = a.peso;
+            });
 
- aristas.forEach(a=>{
-  let i=nodos.indexOf(a.from);
-  let j=nodos.indexOf(a.to);
-  if(i!=-1 && j!=-1) matriz[i][j]=a.peso;
- });
+            let html = `<table><tr><th>Nodos</th>`;
+            nNames.forEach(name => html += `<th>${name}</th>`);
+            html += `<th class="summary">Suma</th><th class="summary">Cant.</th></tr>`;
 
- let sumF=matriz.map(r=>r.reduce((a,b)=>a+b,0));
- let contF=matriz.map(r=>r.filter(x=>x>0).length);
+            let sumasFilas = matriz.map(r => r.reduce((a,b) => a+b, 0));
+            let cantFilas = matriz.map(r => r.filter(x => x > 0).length);
+            let maxSumF = Math.max(...sumasFilas);
+            let maxCantF = Math.max(...cantFilas);
 
- let sumC=Array(n).fill(0);
- let contC=Array(n).fill(0);
+            matriz.forEach((row, i) => {
+                html += `<tr><th>${nNames[i]}</th>`;
+                row.forEach(val => html += `<td>${val}</td>`);
+                html += `<td class="${sumasFilas[i] === maxSumF && maxSumF > 0 ? 'max-cell' : 'summary'}">${sumasFilas[i]}</td>`;
+                html += `<td class="${cantFilas[i] === maxCantF && maxCantF > 0 ? 'max-cell' : 'summary'}">${cantFilas[i]}</td></tr>`;
+            });
 
- for(let j=0;j<n;j++){
-  for(let i=0;i<n;i++){
-   sumC[j]+=matriz[i][j];
-   if(matriz[i][j]>0) contC[j]++;
-  }
- }
-
- const maxSF=Math.max(...sumF,0);
- const maxSC=Math.max(...sumC,0);
- const maxCF=Math.max(...contF,0);
- const maxCC=Math.max(...contC,0);
-
- let html="<table><tr><th>NODOS</th>";
- nodos.forEach(n=>html+=`<th>${n}</th>`);
- html+="<th>SUMA</th><th>CANT</th></tr>";
-
- for(let i=0;i<n;i++){
-  html+=`<tr><th>${nodos[i]}</th>`;
-  for(let j=0;j<n;j++) html+=`<td>${matriz[i][j]}</td>`;
-  html+=`<td class="${sumF[i]===maxSF?'is-max':''}">${sumF[i]}</td>`;
-  html+=`<td class="${contF[i]===maxCF?'is-max':''}">${contF[i]}</td></tr>`;
- }
-
- html+="<tr><th>Σ</th>";
- sumC.forEach(s=>html+=`<td class="${s===maxSC?'is-max':''}">${s}</td>`);
- html+="<td colspan='2'></td></tr>";
-
- html+="<tr><th>#</th>";
- contC.forEach(c=>html+=`<td class="${c===maxCC?'is-max':''}">${c}</td>`);
- html+="<td colspan='2'></td></tr></table>";
-
- document.getElementById("matriz-render").innerHTML=html;
-
- document.getElementById("max-cont-f").innerText=maxCF;
- document.getElementById("max-cont-c").innerText=maxCC;
- document.getElementById("max-sum-f").innerText=maxSF;
- document.getElementById("max-sum-c").innerText=maxSC;
-}
-
-generarMatrizPro();
+            document.getElementById('table-container').innerHTML = html;
+        }
+        render();
+    </script>
+</body>
+</html>
