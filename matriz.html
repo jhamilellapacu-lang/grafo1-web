@@ -1,56 +1,60 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Matriz de Adyacencia</title>
-<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600&display=swap" rel="stylesheet">
-<style>
-body{
-font-family:'Comfortaa', sans-serif;
-background:#f1f8f5;
-text-align:center;
+function generarMatrizPro(){
+ const data=JSON.parse(localStorage.getItem("grafo"))||{nodos:[],aristas:[]};
+ const nodos=data.nodos.map(n=>n.nombre);
+ const aristas=data.aristas;
+
+ const n=nodos.length;
+ let matriz=Array.from({length:n},()=>Array(n).fill(0));
+
+ aristas.forEach(a=>{
+  let i=nodos.indexOf(a.from);
+  let j=nodos.indexOf(a.to);
+  if(i!=-1 && j!=-1) matriz[i][j]=a.peso;
+ });
+
+ let sumF=matriz.map(r=>r.reduce((a,b)=>a+b,0));
+ let contF=matriz.map(r=>r.filter(x=>x>0).length);
+
+ let sumC=Array(n).fill(0);
+ let contC=Array(n).fill(0);
+
+ for(let j=0;j<n;j++){
+  for(let i=0;i<n;i++){
+   sumC[j]+=matriz[i][j];
+   if(matriz[i][j]>0) contC[j]++;
+  }
+ }
+
+ const maxSF=Math.max(...sumF,0);
+ const maxSC=Math.max(...sumC,0);
+ const maxCF=Math.max(...contF,0);
+ const maxCC=Math.max(...contC,0);
+
+ let html="<table><tr><th>NODOS</th>";
+ nodos.forEach(n=>html+=`<th>${n}</th>`);
+ html+="<th>SUMA</th><th>CANT</th></tr>";
+
+ for(let i=0;i<n;i++){
+  html+=`<tr><th>${nodos[i]}</th>`;
+  for(let j=0;j<n;j++) html+=`<td>${matriz[i][j]}</td>`;
+  html+=`<td class="${sumF[i]===maxSF?'is-max':''}">${sumF[i]}</td>`;
+  html+=`<td class="${contF[i]===maxCF?'is-max':''}">${contF[i]}</td></tr>`;
+ }
+
+ html+="<tr><th>Σ</th>";
+ sumC.forEach(s=>html+=`<td class="${s===maxSC?'is-max':''}">${s}</td>`);
+ html+="<td colspan='2'></td></tr>";
+
+ html+="<tr><th>#</th>";
+ contC.forEach(c=>html+=`<td class="${c===maxCC?'is-max':''}">${c}</td>`);
+ html+="<td colspan='2'></td></tr></table>";
+
+ document.getElementById("matriz-render").innerHTML=html;
+
+ document.getElementById("max-cont-f").innerText=maxCF;
+ document.getElementById("max-cont-c").innerText=maxCC;
+ document.getElementById("max-sum-f").innerText=maxSF;
+ document.getElementById("max-sum-c").innerText=maxSC;
 }
-table{
-margin:auto;
-border-collapse:collapse;
-background:white;
-}
-td,th{
-border:1px solid #1b4332;
-padding:8px 12px;
-}
-</style>
-</head>
-<body>
 
-<h2>MATRIZ DE ADYACENCIA</h2>
-<div id="matrix"></div>
-
-<script>
-let data = JSON.parse(localStorage.getItem("grafo"));
-if(!data){
-document.getElementById("matrix").innerHTML="No hay datos.";
-}else{
-let nodes = data.nodes;
-let edges = data.edges;
-
-let table="<table><tr><th></th>";
-nodes.forEach(n=> table+=`<th>${n.name}</th>`);
-table+="</tr>";
-
-nodes.forEach(row=>{
-table+=`<tr><th>${row.name}</th>`;
-nodes.forEach(col=>{
-let edge = edges.find(e=>e.from===row.id && e.to===col.id);
-table+=`<td>${edge?edge.weight:0}</td>`;
-});
-table+="</tr>";
-});
-
-table+="</table>";
-document.getElementById("matrix").innerHTML=table;
-}
-</script>
-
-</body>
-</html>
+generarMatrizPro();
