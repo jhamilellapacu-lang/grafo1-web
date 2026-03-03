@@ -2,94 +2,265 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Matriz de Adyacencia Pro</title>
+    <title>Diseña tu Grafo - Pro Editor</title>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #470f70; --accent: #2196f3; --bg: #f0f4f8; }
-        body { font-family: 'Comfortaa', sans-serif; background: var(--bg); padding: 40px; }
-        .card { background: white; padding: 35px; border-radius: 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.05); max-width: 1000px; margin: auto; }
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        h1 { color: var(--primary); margin: 0; }
-        button { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 12px; cursor: pointer; font-weight: bold; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; border-radius: 15px; overflow: hidden; border: 1px solid #eee; }
-        th, td { padding: 15px; text-align: center; border: 1px solid #edf2f7; }
-        th { background: var(--primary); color: white; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
-        
-        .row-label { background: #f7fafc; font-weight: bold; color: var(--primary); }
-        .sum-cell { background: #e3f2fd; font-weight: bold; color: var(--accent); }
-        .highlight { background: #fff9c4 !important; border: 2px solid #fbc02d; }
+        :root {
+            --primary: #470f70; /* Color Nodos */
+            --accent: #2196f3;  /* Color Botones y Borde */
+            --edge: #bb20b3;    /* Color Aristas */
+            --loop: #903495;    /* Color Bucles */
+            --danger: #ff5252;
+        }
 
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 30px; }
-        .stat-box { background: var(--accent); color: white; padding: 20px; border-radius: 20px; text-align: center; box-shadow: 0 5px 15px rgba(33, 150, 243, 0.2); }
-        .stat-box span { display: block; font-size: 2rem; font-weight: bold; margin-top: 5px; }
+        body { font-family: 'Comfortaa', cursive; margin: 0; display: flex; height: 100vh; background: #f8fafc; overflow: hidden; }
+
+        /* PANEL LATERAL */
+        #sidebar { width: 300px; background: white; padding: 20px; box-shadow: 5px 0 25px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 15px; z-index: 100; }
+        h1 { font-size: 1.3rem; color: var(--primary); text-align: center; margin: 0; }
+        .group { padding: 15px; border: 1px solid #edf2f7; border-radius: 18px; background: #fcfcfc; }
+        
+        input, button { width: 100%; padding: 12px; margin-top: 8px; border-radius: 10px; border: 1px solid #e2e8f0; font-family: inherit; box-sizing: border-box; }
+        button { background: var(--accent); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        button:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-delete { background: var(--danger); }
+        .hint { font-size: 0.75rem; color: #718096; margin-top: 8px; line-height: 1.3; }
+
+        /* LIENZO */
+        #canvas-container { flex-grow: 1; padding: 25px; position: relative; }
+        #area { 
+            width: 100%; height: 100%; background: white; border-radius: 30px; 
+            position: relative; border: 3px solid var(--accent); overflow: hidden;
+            cursor: crosshair; box-shadow: inset 0 0 20px rgba(0,0,0,0.02);
+        }
+
+        .nodo {
+            width: 50px; height: 50px; border-radius: 50%;
+            background: var(--primary); color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; position: absolute;
+            transform: translate(-50%, -50%); cursor: move;
+            z-index: 10; border: 3px solid white; user-select: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            touch-action: none;
+        }
+        .nodo.selected { border-color: #4caf50; box-shadow: 0 0 0 6px rgba(76, 175, 80, 0.3); }
+
+        svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        
+        /* PESOS INTERACTIVOS */
+        .weight-box { pointer-events: all; cursor: pointer; }
+        .weight-bg { fill: white; stroke: #e2e8f0; rx: 6; }
+        .weight-text { font-weight: bold; font-size: 12px; fill: #2d3748; }
     </style>
 </head>
 <body>
-<div class="card">
-    <header>
-        <h1>Matriz de Adyacencia</h1>
-        <button onclick="window.location.href='index.html'">⬅ Regresar al Editor</button>
-    </header>
-    <div id="table-container"></div>
-    <div class="stats-grid" id="stats-container"></div>
+
+<div id="sidebar">
+    <h1>Panel de Control</h1>
+    
+    <div class="group">
+        <button onclick="activarModoNodo()">+ Agregar Nodo</button>
+        <div class="hint">1. Pulsa el botón.<br>2. Clic en el lienzo.<br>Doble clic en nodo: Editar/Borrar.</div>
+    </div>
+
+    <div class="group">
+        <label>Peso de Arista:</label>
+        <input type="number" id="edgeWeight" value="1" min="1">
+        <div class="hint">1. Clic origen<br>2. Clic destino.</div>
+    </div>
+
+    <div class="group">
+        <input type="text" id="delNodeInput" placeholder="Nombre del nodo">
+        <button class="btn-delete" onclick="borrarNodoPorNombre()">Eliminar Nodo</button>
+    </div>
+
+    <button style="background:#4caf50; margin-top: auto;" onclick="window.location.href='matriz.html'">📊 Ver Matriz</button>
+    <button class="btn-delete" onclick="limpiarLienzo()">Borrar Lienzo</button>
+</div>
+
+<div id="canvas-container">
+    <div id="area" onclick="manejarClickCanvas(event)">
+        <svg id="svg">
+            <defs>
+                <marker id="arrow" viewBox="0 0 10 10" refX="26" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                    <path d="M0,0 L10,5 L0,10 Z" fill="#bb20b3"/>
+                </marker>
+                <marker id="arrow-loop" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                    <path d="M0,0 L10,5 L0,10 Z" fill="#903495"/>
+                </marker>
+            </defs>
+        </svg>
+    </div>
 </div>
 
 <script>
-    function render() {
-        const nodosData = JSON.parse(localStorage.getItem("g_nodos")) || [];
-        const aristasData = JSON.parse(localStorage.getItem("g_aristas")) || [];
-        const ids = nodosData.map(n => n.id);
-        const size = ids.length;
+let nodos = [];
+let aristas = [];
+let nodoOrigen = null;
+let dragging = null;
+let modoCrearNodo = false;
 
-        if (size === 0) {
-            document.getElementById('table-container').innerHTML = "<p style='text-align:center;color:#666;'>No hay nodos en el grafo.</p>";
-            return;
-        }
+const area = document.getElementById('area');
+const svg = document.getElementById('svg');
 
-        let m = Array.from({length: size}, () => Array(size).fill(0));
-        aristasData.forEach(edge => {
-            const i = ids.indexOf(edge.from), j = ids.indexOf(edge.to);
-            if(i !== -1 && j !== -1) m[i][j] = edge.peso;
-        });
+function activarModoNodo() { modoCrearNodo = true; area.style.cursor = "alias"; }
 
-        // Cálculos
-        let sumF = m.map(r => r.reduce((a,b)=>a+b, 0));
-        let cantF = m.map(r => r.filter(x=>x>0).length);
-        let sumC = Array(size).fill(0), cantC = Array(size).fill(0);
-        
-        for(let j=0; j<size; j++) {
-            for(let i=0; i<size; i++) {
-                sumC[j] += m[i][j];
-                if(m[i][j] > 0) cantC[j]++;
-            }
-        }
-
-        let mxSF = Math.max(...sumF, 0), mxCF = Math.max(...cantF, 0);
-        let mxSC = Math.max(...sumC, 0), mxCC = Math.max(...cantC, 0);
-
-        // Render Tabla
-        let html = `<table><thead><tr><th>Nodos</th>` + ids.map(x=>`<th>${x}</th>`).join('') + `<th>Suma Σ</th><th>Cant #</th></tr></thead><tbody>`;
-        m.forEach((row, i) => {
-            html += `<tr><td class="row-label">${ids[i]}</td>` + row.map(v=>`<td>${v}</td>`).join('') + 
-            `<td class="sum-cell ${sumF[i]===mxSF && mxSF>0?'highlight':''}">${sumF[i]}</td>` +
-            `<td class="sum-cell ${cantF[i]===mxCF && mxCF>0?'highlight':''}">${cantF[i]}</td></tr>`;
-        });
-        
-        // Totales Inferiores
-        html += `<tr><td class="row-label">SUMA Σ</td>` + sumC.map(v=>`<td class="sum-cell ${v===mxSC && mxSC>0?'highlight':''}">${v}</td>`).join('') + `<td colspan="2"></td></tr>`;
-        html += `<tr><td class="row-label">CANT #</td>` + cantC.map(v=>`<td class="sum-cell ${v===mxCC && mxCC>0?'highlight':''}">${v}</td>`).join('') + `<td colspan="2"></td></tr></tbody></table>`;
-        
-        document.getElementById('table-container').innerHTML = html;
-
-        // Render Dashboard
-        document.getElementById('stats-container').innerHTML = `
-            <div class="stat-box">Max Suma Fila<span>${mxSF}</span></div>
-            <div class="stat-box">Max Cant Fila<span>${mxCF}</span></div>
-            <div class="stat-box">Max Suma Col<span>${mxSC}</span></div>
-            <div class="stat-box">Max Cant Col<span>${mxCC}</span></div>`;
+function manejarClickCanvas(e) {
+    if (e.target.id === 'area' && modoCrearNodo) {
+        const rect = area.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        crearNodo(x, y);
+        modoCrearNodo = false;
+        area.style.cursor = "crosshair";
     }
-    window.onload = render;
+}
+
+function crearNodo(x, y, nombreExistente = null) {
+    const nombre = nombreExistente || prompt("Nombre del nodo:") || String.fromCharCode(65 + nodos.length);
+    
+    if (nodos.some(n => n.id === nombre)) return alert("El nombre ya existe");
+    if (checkCollision(x, y)) return alert("Espacio ocupado");
+
+    const nodoObj = { id: nombre, x, y, el: null };
+    const div = document.createElement('div');
+    div.className = 'nodo';
+    div.textContent = nombre;
+    div.style.left = x + 'px'; div.style.top = y + 'px';
+
+    // Eventos
+    div.onmousedown = (e) => { dragging = nodoObj; e.stopPropagation(); };
+    div.onclick = (e) => { e.stopPropagation(); manejarConexion(nodoObj); };
+    div.ondblclick = (e) => { e.stopPropagation(); editarNombreNodo(nodoObj); };
+
+    area.appendChild(div);
+    nodoObj.el = div;
+    nodos.push(nodoObj);
+    redibujar();
+    guardar();
+}
+
+function manejarConexion(nodo) {
+    if (!nodoOrigen) {
+        nodoOrigen = nodo;
+        nodo.el.classList.add('selected');
+    } else {
+        const peso = Math.abs(parseInt(document.getElementById('edgeWeight').value)) || 1;
+        aristas.push({ from: nodoOrigen.id, to: nodo.id, peso });
+        nodoOrigen.el.classList.remove('selected');
+        nodoOrigen = null;
+        redibujar();
+        guardar();
+    }
+}
+
+function redibujar() {
+    while (svg.lastChild && svg.lastChild.nodeName !== 'defs') svg.removeChild(svg.lastChild);
+    
+    aristas.forEach((a, idx) => {
+        const n1 = nodos.find(n => n.id === a.from);
+        const n2 = nodos.find(n => n.id === a.to);
+        if (!n1 || !n2) return;
+
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        let d, lx, ly;
+
+        if (n1 === n2) { // BUCLE ESTILO IMAGEN
+            d = `M ${n1.x-10} ${n1.y-25} A 15 15 0 1 1 ${n1.x+10} ${n1.y-25}`;
+            lx = n1.x; ly = n1.y - 55;
+            crearPath(g, d, "var(--loop)", "url(#arrow-loop)", a, idx, lx, ly);
+        } else {
+            d = `M ${n1.x} ${n1.y} L ${n2.x} ${n2.y}`;
+            lx = (n1.x + n2.x)/2; ly = (n1.y + n2.y)/2;
+            crearPath(g, d, "var(--edge)", "url(#arrow)", a, idx, lx, ly);
+        }
+        svg.appendChild(g);
+    });
+}
+
+function crearPath(g, d, color, marker, a, index, lx, ly) {
+    const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    p.setAttribute("d", d); p.setAttribute("stroke", color);
+    p.setAttribute("fill", "none"); p.setAttribute("stroke-width", "3");
+    p.setAttribute("marker-end", marker);
+
+    const wG = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    wG.setAttribute("class", "weight-box");
+    wG.onclick = () => {
+        const res = prompt("Editar peso (escribe 'borrar' para eliminar):", a.peso);
+        if (res === 'borrar') aristas.splice(index, 1);
+        else if (res && !isNaN(res)) aristas[index].peso = Math.abs(parseInt(res));
+        redibujar(); guardar();
+    };
+
+    const r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    r.setAttribute("x", lx-12); r.setAttribute("y", ly-10); r.setAttribute("width", "24"); r.setAttribute("height", "18"); r.setAttribute("class", "weight-bg");
+    const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    t.setAttribute("x", lx); t.setAttribute("y", ly+4); t.setAttribute("text-anchor", "middle"); t.setAttribute("class", "weight-text");
+    t.textContent = a.peso;
+
+    wG.append(r, t); g.append(p, wG);
+}
+
+// LOGICA DE MOVIMIENTO
+window.onmousemove = (e) => {
+    if (!dragging) return;
+    const rect = area.getBoundingClientRect();
+    let x = e.clientX - rect.left, y = e.clientY - rect.top;
+    if (!checkCollision(x, y, dragging)) {
+        dragging.x = x; dragging.y = y;
+        dragging.el.style.left = x + 'px'; dragging.el.style.top = y + 'px';
+        redibujar();
+    }
+};
+window.onmouseup = () => { if(dragging) guardar(); dragging = null; };
+
+function checkCollision(x, y, ignore = null) {
+    return nodos.some(n => n !== ignore && Math.sqrt((n.x-x)**2 + (n.y-y)**2) < 70);
+}
+
+function editarNombreNodo(nodo) {
+    const nuevo = prompt("Nuevo nombre (vacío para borrar nodo):", nodo.id);
+    if (nuevo === "") {
+        eliminarNodo(nodo.id);
+    } else if (nuevo && !nodos.some(n => n.id === nuevo)) {
+        aristas.forEach(a => {
+            if (a.from === nodo.id) a.from = nuevo;
+            if (a.to === nodo.id) a.to = nuevo;
+        });
+        nodo.id = nuevo; nodo.el.textContent = nuevo;
+        redibujar(); guardar();
+    }
+}
+
+function eliminarNodo(id) {
+    nodos = nodos.filter(n => {
+        if (n.id === id) { n.el.remove(); return false; }
+        return true;
+    });
+    aristas = aristas.filter(a => a.from !== id && a.to !== id);
+    redibujar(); guardar();
+}
+
+function borrarNodoPorNombre() {
+    const val = document.getElementById('delNodeInput').value.trim();
+    if(val) { eliminarNodo(val); document.getElementById('delNodeInput').value = ""; }
+}
+
+function guardar() {
+    localStorage.setItem("g_nodos", JSON.stringify(nodos.map(n=>({id:n.id, x:n.x, y:n.y}))));
+    localStorage.setItem("g_aristas", JSON.stringify(aristas));
+}
+
+function limpiarLienzo() { if(confirm("¿Borrar todo?")) { localStorage.clear(); location.reload(); } }
+
+window.onload = () => {
+    const n = JSON.parse(localStorage.getItem("g_nodos"));
+    const a = JSON.parse(localStorage.getItem("g_aristas"));
+    if(n) n.forEach(d => crearNodo(d.x, d.y, d.id));
+    if(a) { aristas = a; redibujar(); }
+};
 </script>
 </body>
 </html>
