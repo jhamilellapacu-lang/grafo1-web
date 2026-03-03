@@ -2,81 +2,82 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Grafo Profesional - Corregido</title>
+    <title>Grafo Pro - Sistema de Borrado</title>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-node: #470f70;
-            --btn-color: #2196f3;
-            --edge-up: #c26cf8;
-            --edge-down: #bb20b3;
-            --loop-color: #903495;
-            --bg: #fdfdfd;
+            --primary: #470f70;
+            --accent: #2196f3;
+            --danger: #ff5252;
+            --loop: #903495;
         }
 
-        body { font-family: 'Comfortaa', cursive; margin: 0; display: flex; height: 100vh; background: var(--bg); overflow: hidden; }
+        body { font-family: 'Comfortaa', cursive; margin: 0; display: flex; height: 100vh; background: #f4f7f6; overflow: hidden; }
 
         /* SIDEBAR */
-        #sidebar { width: 320px; background: white; padding: 20px; box-shadow: 4px 0 20px rgba(0,0,0,0.08); display: flex; flex-direction: column; gap: 12px; z-index: 100; }
-        .step { padding: 12px; border: 1px solid #eee; border-radius: 15px; background: #fafafa; font-size: 0.85rem; }
-        h1 { font-size: 1.3rem; color: var(--primary-node); text-align: center; margin: 0 0 10px 0; }
+        #sidebar { width: 320px; background: white; padding: 25px; box-shadow: 5px 0 20px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 20px; z-index: 100; }
+        h1 { font-size: 1.2rem; color: var(--primary); text-align: center; margin: 0; }
         
-        input, button { width: 100%; padding: 10px; margin-top: 8px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-family: inherit; }
-        button { background: var(--btn-color); color: white; border: none; cursor: pointer; font-weight: bold; }
-        .danger { background: #ff5252; }
+        .panel { padding: 15px; border-radius: 20px; background: #fafafa; border: 1px solid #eee; }
+        input, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 12px; border: 1px solid #ddd; font-family: inherit; box-sizing: border-box; }
+        
+        button { background: var(--accent); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        button:hover { filter: brightness(1.1); transform: translateY(-2px); }
+        
+        .btn-delete { background: var(--danger); }
+        .hint { font-size: 0.75rem; color: #888; margin-top: 5px; }
 
         /* CANVAS */
-        #canvas-container { flex-grow: 1; padding: 25px; position: relative; }
-        #area { width: 100%; height: 100%; background: #fff; border-radius: 25px; position: relative; border: 3px solid var(--btn-color); overflow: hidden; }
+        #canvas-container { flex-grow: 1; padding: 20px; position: relative; }
+        #area { width: 100%; height: 100%; background: white; border-radius: 30px; border: 3px solid var(--accent); position: relative; overflow: hidden; }
 
         .nodo {
-            width: 50px; height: 50px; border-radius: 50%;
-            background: var(--primary-node); color: white;
+            width: 55px; height: 55px; border-radius: 50%;
+            background: var(--primary); color: white;
             display: flex; align-items: center; justify-content: center;
             font-weight: bold; position: absolute;
             transform: translate(-50%, -50%); cursor: move;
-            z-index: 10; border: 2px solid #fff; user-select: none;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            z-index: 10; border: 3px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            touch-action: none;
         }
-        .nodo.selected { box-shadow: 0 0 0 5px #4caf50; }
+        .nodo.selected { border-color: #4caf50; box-shadow: 0 0 0 5px rgba(76, 175, 80, 0.3); }
 
         svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-        
-        .label-group { pointer-events: all; cursor: pointer; }
-        .label-rect { fill: white; stroke: #ddd; rx: 4; }
-        .label-text { font-weight: bold; font-size: 12px; fill: #333; pointer-events: none; }
+        .weight-label { pointer-events: all; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div id="sidebar">
-    <h1>Diseña tu Grafo</h1>
-    <div class="step">
-        <input type="text" id="nodeName" placeholder="Nombre Nodo">
-        <button onclick="agregarNodo()">Agregar Nodo</button>
+    <h1>Panel de Control</h1>
+    
+    <div class="panel">
+        <button onclick="activarModoNodo()">+ Agregar Nodo</button>
+        <p class="hint">Haz clic en el lienzo vacío para colocar el nodo.</p>
     </div>
-    <div class="step">
-        <input type="number" id="edgeWeight" value="1" min="1">
-        <p>1. Clic en Origen<br>2. Clic en Destino</p>
+
+    <div class="panel">
+        <b>Eliminar Nodo</b>
+        <input type="text" id="nodeToDelete" placeholder="Nombre del nodo">
+        <button class="btn-delete" onclick="borrarNodoPorNombre()">Eliminar Nodo</button>
+        <p class="hint">O haz <b>doble clic</b> en un nodo y deja el nombre vacío.</p>
     </div>
-    <div class="step">
-        <b>Edición Pro:</b><br>
-        • Doble clic en nodo para editar/borrar.<br>
-        • Clic en número de arista para editar/borrar.
+
+    <div class="panel">
+        <b>Aristas y Pesos</b>
+        <input type="number" id="weightInput" value="1">
+        <p class="hint">Clic en origen y luego en destino para unir.</p>
     </div>
-    <button onclick="exportarJSON()">Descargar JSON</button>
-    <button class="danger" onclick="limpiarTodo()">Borrar Lienzo</button>
-    <button style="background: #4caf50; margin-top: auto;" onclick="window.location.href='matriz.html'">Ver Matriz</button>
+
+    <button style="background:#4caf50; margin-top: auto;" onclick="window.location.href='matriz.html'">Ver Matriz</button>
+    <button class="btn-delete" onclick="limpiarTodo()">Borrar Todo</button>
 </div>
 
 <div id="canvas-container">
-    <div id="area" onclick="canvasClick(event)">
+    <div id="area" onclick="intentarAgregarNodo(event)">
         <svg id="svg">
             <defs>
-                <marker id="arrow-up" markerWidth="10" markerHeight="10" refX="28" refY="5" orient="auto">
-                    <path d="M0,0 L10,5 L0,10 Z" fill="#c26cf8"/>
-                </marker>
-                <marker id="arrow-down" markerWidth="10" markerHeight="10" refX="28" refY="5" orient="auto">
+                <marker id="arrow" markerWidth="10" markerHeight="10" refX="27" refY="5" orient="auto">
                     <path d="M0,0 L10,5 L0,10 Z" fill="#bb20b3"/>
                 </marker>
                 <marker id="arrow-loop" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
@@ -90,156 +91,182 @@
 <script>
 let nodos = [];
 let aristas = [];
-let nodoSeleccionado = null;
-let draggingNode = null;
+let origen = null;
+let arrastrando = null;
 
 const area = document.getElementById('area');
 const svg = document.getElementById('svg');
 
-function agregarNodo(x, y, nombre = null) {
-    const name = nombre || document.getElementById('nodeName').value.trim();
-    if (!name || nodos.some(n => n.nombre === name)) return;
+// --- FUNCIONES DE NODO ---
 
-    const posX = x || area.clientWidth / 2;
-    const posY = y || area.clientHeight / 2;
-
-    if (checkCollision(posX, posY)) return;
-
-    const nodeObj = { nombre: name, x: posX, y: posY, el: null };
-    crearElementoNodo(nodeObj);
-    nodos.push(nodeObj);
-    guardarLocal();
+function intentarAgregarNodo(e) {
+    if (e.target.id === 'area') {
+        const rect = area.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        crearNodo(x, y);
+    }
 }
 
-function crearElementoNodo(node) {
+function crearNodo(x, y, nombreExistente = null) {
+    const nombre = nombreExistente || prompt("Nombre del nodo:") || String.fromCharCode(65 + nodos.length);
+    if (nodos.some(n => n.id === nombre)) return;
+
+    const nodoObj = { id: nombre, x: x, y: y, el: null };
+    
     const div = document.createElement('div');
     div.className = 'nodo';
-    div.textContent = node.nombre;
-    div.style.left = node.x + 'px';
-    div.style.top = node.y + 'px';
+    div.textContent = nombre;
+    div.style.left = x + 'px';
+    div.style.top = y + 'px';
 
-    div.onmousedown = (e) => { draggingNode = node; };
-    div.onclick = (e) => { e.stopPropagation(); seleccionarParaArista(node); };
-    div.ondblclick = (e) => { 
-        e.stopPropagation();
-        const res = prompt("Editar nombre (o escribe 'borrar' para eliminar):", node.nombre);
-        if (res === 'borrar') {
-            nodos = nodos.filter(n => n !== node);
-            aristas = aristas.filter(a => a.from !== node.nombre && a.to !== node.nombre);
-            div.remove();
-        } else if (res && !nodos.some(n => n.nombre === res)) {
-            aristas.forEach(a => {
-                if (a.from === node.nombre) a.from = res;
-                if (a.to === node.nombre) a.to = res;
-            });
-            node.nombre = res;
-            div.textContent = res;
-        }
-        dibujarAristas();
-        guardarLocal();
-    };
+    // Eventos de interacción
+    div.onmousedown = (e) => { arrastrando = nodoObj; e.stopPropagation(); };
+    div.onclick = (e) => { e.stopPropagation(); conectar(nodoObj); };
+    div.ondblclick = (e) => { e.stopPropagation(); editarOBorrarNodo(nodoObj); };
 
     area.appendChild(div);
-    node.el = div;
+    nodoObj.el = div;
+    nodos.push(nodoObj);
+    redibujar();
+    guardar();
 }
 
-document.onmousemove = (e) => {
-    if (!draggingNode) return;
-    const rect = area.getBoundingClientRect();
-    let nx = e.clientX - rect.left;
-    let ny = e.clientY - rect.top;
-    if (!checkCollision(nx, ny, draggingNode)) {
-        draggingNode.x = nx; draggingNode.y = ny;
-        draggingNode.el.style.left = nx + 'px';
-        draggingNode.el.style.top = ny + 'px';
-        dibujarAristas();
-    }
-};
-document.onmouseup = () => { if(draggingNode) guardarLocal(); draggingNode = null; };
-
-function checkCollision(x, y, ignore = null) {
-    return nodos.some(n => n !== ignore && Math.sqrt((n.x-x)**2 + (n.y-y)**2) < 70);
-}
-
-function seleccionarParaArista(node) {
-    if (!nodoSeleccionado) {
-        nodoSeleccionado = node;
-        node.el.classList.add('selected');
+function editarOBorrarNodo(nodo) {
+    const nuevoNombre = prompt("Editar nombre (borra el texto para eliminar el nodo):", nodo.id);
+    if (nuevoNombre === null) return;
+    
+    if (nuevoNombre.trim() === "") {
+        eliminarNodo(nodo.id);
     } else {
-        const peso = Math.abs(parseInt(document.getElementById('edgeWeight').value)) || 1;
-        aristas.push({ from: nodoSeleccionado.nombre, to: node.nombre, peso });
-        nodoSeleccionado.el.classList.remove('selected');
-        nodoSeleccionado = null;
-        dibujarAristas();
-        guardarLocal();
+        actualizarNombreNodo(nodo, nuevoNombre);
     }
 }
 
-function dibujarAristas() {
+function eliminarNodo(id) {
+    // 1. Quitar elemento visual
+    const nodo = nodos.find(n => n.id === id);
+    if (nodo) nodo.el.remove();
+
+    // 2. Filtrar arreglos
+    nodos = nodos.filter(n => n.id !== id);
+    aristas = aristas.filter(a => a.from !== id && a.to !== id);
+
+    redibujar();
+    guardar();
+}
+
+function borrarNodoPorNombre() {
+    const nombre = document.getElementById('nodeToDelete').value.trim();
+    if (nombre) {
+        eliminarNodo(nombre);
+        document.getElementById('nodeToDelete').value = "";
+    }
+}
+
+function actualizarNombreNodo(nodo, nuevoId) {
+    if (nodos.some(n => n.id === nuevoId)) return alert("El nombre ya existe");
+    
+    aristas.forEach(a => {
+        if (a.from === nodo.id) a.from = nuevoId;
+        if (a.to === nodo.id) a.to = nuevoId;
+    });
+    
+    nodo.id = nuevoId;
+    nodo.el.textContent = nuevoId;
+    guardar();
+    redibujar();
+}
+
+// --- ARISTAS Y MOVIMIENTO ---
+
+function conectar(nodo) {
+    if (!origen) {
+        origen = nodo;
+        nodo.el.classList.add('selected');
+    } else {
+        const peso = parseInt(document.getElementById('weightInput').value) || 1;
+        aristas.push({ from: origen.id, to: nodo.id, peso: peso });
+        origen.el.classList.remove('selected');
+        origen = null;
+        redibujar();
+        guardar();
+    }
+}
+
+function redibujar() {
     while (svg.lastChild && svg.lastChild.nodeName !== 'defs') svg.removeChild(svg.lastChild);
-    aristas.forEach((a, idx) => {
-        const n1 = nodos.find(n => n.nombre === a.from);
-        const n2 = nodos.find(n => n.nombre === a.to);
+    
+    aristas.forEach((a, index) => {
+        const n1 = nodos.find(n => n.id === a.from);
+        const n2 = nodos.find(n => n.id === a.to);
         if (!n1 || !n2) return;
 
         const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        let d, lx, ly, color, marker;
+        let d, lx, ly;
 
-        if (n1 === n2) {
-            color = "var(--loop-color)";
-            marker = "url(#arrow-loop)";
-            d = `M ${n1.x-5} ${n1.y-25} A 15 15 0 1 1 ${n1.x+5} ${n1.y-25}`;
-            lx = n1.x; ly = n1.y - 55;
+        if (n1 === n2) { // BUCLE ESTÉTICO
+            d = `M ${n1.x-10} ${n1.y-25} A 18 18 0 1 1 ${n1.x+10} ${n1.y-25}`;
+            lx = n1.x; ly = n1.y - 65;
+            crearPath(g, d, "var(--loop)", "url(#arrow-loop)", a, index, lx, ly);
         } else {
-            const tieneInversa = aristas.some(x => x.from === a.to && x.to === a.from);
-            color = (n1.nombre <= n2.nombre) ? "var(--edge-up)" : "var(--edge-down)";
-            marker = (n1.nombre <= n2.nombre) ? "url(#arrow-up)" : "url(#arrow-down)";
-            
-            if (tieneInversa) {
-                const mx = (n1.x + n2.x)/2, my = (n1.y + n2.y)/2;
-                const dx = n2.x - n1.x, dy = n2.y - n1.y;
-                const dist = Math.sqrt(dx*dx + dy*dy);
-                const ox = -dy/dist * 25, oy = dx/dist * 25;
-                d = `M ${n1.x} ${n1.y} Q ${mx+ox} ${my+oy} ${n2.x} ${n2.y}`;
-                lx = mx+ox; ly = my+oy;
-            } else {
-                d = `M ${n1.x} ${n1.y} L ${n2.x} ${n2.y}`;
-                lx = (n1.x + n2.x)/2; ly = (n1.y + n2.y)/2;
-            }
+            d = `M ${n1.x} ${n1.y} L ${n2.x} ${n2.y}`;
+            lx = (n1.x + n2.x)/2; ly = (n1.y + n2.y)/2;
+            crearPath(g, d, "#bb20b3", "url(#arrow)", a, index, lx, ly);
         }
-
-        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.setAttribute("d", d); path.setAttribute("stroke", color);
-        path.setAttribute("fill", "none"); path.setAttribute("stroke-width", "3");
-        path.setAttribute("marker-end", marker);
-
-        const lGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        lGroup.setAttribute("class", "label-group");
-        lGroup.onclick = () => {
-            const res = prompt("Nuevo peso (o 'borrar'):", a.peso);
-            if (res === 'borrar') aristas.splice(idx, 1);
-            else if (!isNaN(parseInt(res))) a.peso = Math.abs(parseInt(res));
-            dibujarAristas(); guardarLocal();
-        };
-
-        const r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        r.setAttribute("x", lx-12); r.setAttribute("y", ly-10); r.setAttribute("width", "24"); r.setAttribute("height", "18"); r.setAttribute("class", "label-rect");
-        const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        t.setAttribute("x", lx); t.setAttribute("y", ly+4); t.setAttribute("text-anchor", "middle"); t.setAttribute("class", "label-text");
-        t.textContent = a.peso;
-
-        lGroup.append(r, t); g.append(path, lGroup); svg.appendChild(g);
+        svg.appendChild(g);
     });
 }
 
-function canvasClick(e) { if(e.target.id === 'area') { const r = area.getBoundingClientRect(); agregarNodo(e.clientX-r.left, e.clientY-r.top); } }
-function guardarLocal() { localStorage.setItem("nodos_v2", JSON.stringify(nodos.map(n=>({nombre:n.nombre, x:n.x, y:n.y})))); localStorage.setItem("aristas_v2", JSON.stringify(aristas)); }
+function crearPath(g, d, color, marker, a, index, lx, ly) {
+    const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    p.setAttribute("d", d); p.setAttribute("stroke", color);
+    p.setAttribute("fill", "none"); p.setAttribute("stroke-width", "3");
+    p.setAttribute("marker-end", marker);
+
+    const textG = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    textG.setAttribute("class", "weight-label");
+    textG.onclick = () => {
+        const res = prompt("Editar peso (escribe 'borrar' para quitar arista):", a.peso);
+        if (res === 'borrar') aristas.splice(index, 1);
+        else if (res && !isNaN(res)) a.peso = parseInt(res);
+        redibujar(); guardar();
+    };
+
+    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    rect.setAttribute("x", lx-12); rect.setAttribute("y", ly-10); rect.setAttribute("width", "24"); rect.setAttribute("height", "18"); rect.setAttribute("fill", "white"); rect.setAttribute("stroke", "#ddd"); rect.setAttribute("rx", "4");
+    
+    const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    txt.setAttribute("x", lx); txt.setAttribute("y", ly+4); txt.setAttribute("text-anchor", "middle"); txt.style.fontSize = "12px"; txt.style.fontWeight = "bold";
+    txt.textContent = a.peso;
+
+    textG.append(rect, txt); g.append(p, textG);
+}
+
+// ARRASTRE
+window.onmousemove = (e) => {
+    if (!arrastrando) return;
+    const rect = area.getBoundingClientRect();
+    arrastrando.x = e.clientX - rect.left;
+    arrastrando.y = e.clientY - rect.top;
+    arrastrando.el.style.left = arrastrando.x + 'px';
+    arrastrando.el.style.top = arrastrando.y + 'px';
+    redibujar();
+};
+window.onmouseup = () => { if(arrastrando) guardar(); arrastrando = null; };
+
+function guardar() {
+    localStorage.setItem("grafo_nodos", JSON.stringify(nodos.map(n=>({id:n.id, x:n.x, y:n.y}))));
+    localStorage.setItem("grafo_aristas", JSON.stringify(aristas));
+}
+
 function limpiarTodo() { if(confirm("¿Borrar todo?")) { localStorage.clear(); location.reload(); } }
+
 window.onload = () => {
-    const n = JSON.parse(localStorage.getItem("nodos_v2"));
-    const a = JSON.parse(localStorage.getItem("aristas_v2"));
-    if(n) n.forEach(d => agregarNodo(d.x, d.y, d.nombre));
-    if(a) { aristas = a; dibujarAristas(); }
+    const ns = JSON.parse(localStorage.getItem("grafo_nodos"));
+    const as = JSON.parse(localStorage.getItem("grafo_aristas"));
+    if(ns) ns.forEach(n => crearNodo(n.x, n.y, n.id));
+    if(as) { aristas = as; redibujar(); }
 };
 </script>
 </body>
