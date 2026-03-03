@@ -2,137 +2,85 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Diseña tu Grafo - Pro</title>
+    <title>Grafo Profesional - Corregido</title>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary-node: #470f70;
             --btn-color: #2196f3;
-            --edge-up: #c26cf8; /* Menor a Mayor */
-            --edge-down: #bb20b3; /* Mayor a Menor */
+            --edge-up: #c26cf8;
+            --edge-down: #bb20b3;
+            --loop-color: #903495;
             --bg: #fdfdfd;
         }
 
-        body {
-            font-family: 'Comfortaa', cursive;
-            margin: 0;
-            display: flex;
-            height: 100vh;
-            background-color: var(--bg);
-            overflow: hidden;
-        }
+        body { font-family: 'Comfortaa', cursive; margin: 0; display: flex; height: 100vh; background: var(--bg); overflow: hidden; }
 
         /* SIDEBAR */
-        #sidebar {
-            width: 320px;
-            background: white;
-            padding: 20px;
-            box-shadow: 4px 0 20px rgba(0,0,0,0.08);
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            z-index: 100;
-            overflow-y: auto;
-        }
-
-        .step { padding: 15px; border: 1px solid #eee; border-radius: 15px; background: #fafafa; }
-        h1 { font-size: 1.4rem; color: var(--primary-node); text-align: center; margin-bottom: 20px; }
-        h2 { font-size: 0.9rem; color: #555; margin-top: 0; }
+        #sidebar { width: 320px; background: white; padding: 20px; box-shadow: 4px 0 20px rgba(0,0,0,0.08); display: flex; flex-direction: column; gap: 12px; z-index: 100; }
+        .step { padding: 12px; border: 1px solid #eee; border-radius: 15px; background: #fafafa; font-size: 0.85rem; }
+        h1 { font-size: 1.3rem; color: var(--primary-node); text-align: center; margin: 0 0 10px 0; }
         
-        input, button {
-            width: 100%; padding: 10px; margin-top: 8px;
-            border-radius: 10px; border: 1px solid #ddd;
-            box-sizing: border-box; font-family: inherit;
-        }
-
-        button { 
-            background: var(--btn-color); color: white; border: none; 
-            cursor: pointer; font-weight: bold; transition: 0.3s; 
-        }
-        button:hover { opacity: 0.9; transform: translateY(-1px); }
+        input, button { width: 100%; padding: 10px; margin-top: 8px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-family: inherit; }
+        button { background: var(--btn-color); color: white; border: none; cursor: pointer; font-weight: bold; }
         .danger { background: #ff5252; }
-        .secondary { background: #607d8b; }
 
         /* CANVAS */
         #canvas-container { flex-grow: 1; padding: 25px; position: relative; }
-        #area {
-            width: 100%; height: 100%;
-            background: #ffffff; border-radius: 25px;
-            position: relative; border: 3px solid var(--btn-color);
-            overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        }
+        #area { width: 100%; height: 100%; background: #fff; border-radius: 25px; position: relative; border: 3px solid var(--btn-color); overflow: hidden; }
 
         .nodo {
-            width: 55px; height: 55px; border-radius: 50%;
+            width: 50px; height: 50px; border-radius: 50%;
             background: var(--primary-node); color: white;
             display: flex; align-items: center; justify-content: center;
             font-weight: bold; position: absolute;
             transform: translate(-50%, -50%); cursor: move;
-            z-index: 10; border: 3px solid #fff; user-select: none;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            transition: box-shadow 0.2s;
+            z-index: 10; border: 2px solid #fff; user-select: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
-        .nodo.selected { outline: 4px solid #4caf50; }
+        .nodo.selected { box-shadow: 0 0 0 5px #4caf50; }
 
         svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
         
-        /* ESTILO ETIQUETAS PESO */
         .label-group { pointer-events: all; cursor: pointer; }
-        .label-rect { fill: white; rx: 5; ry: 5; stroke: #eee; }
-        .label-text { font-weight: bold; font-size: 13px; fill: #333; pointer-events: none; }
-
-        /* MANUAL */
-        .manual { font-size: 0.75rem; color: #666; line-height: 1.4; }
+        .label-rect { fill: white; stroke: #ddd; rx: 4; }
+        .label-text { font-weight: bold; font-size: 12px; fill: #333; pointer-events: none; }
     </style>
 </head>
 <body>
 
 <div id="sidebar">
     <h1>Diseña tu Grafo</h1>
-    
     <div class="step">
-        <h2>Nodos</h2>
-        <input type="text" id="nodeName" placeholder="Nombre (Ej: A, B...)">
+        <input type="text" id="nodeName" placeholder="Nombre Nodo">
         <button onclick="agregarNodo()">Agregar Nodo</button>
-        <p class="manual">💡 <b>Tip:</b> Doble clic en nodo para renombrar.</p>
     </div>
-
     <div class="step">
-        <h2>Aristas</h2>
-        <input type="number" id="edgeWeight" value="1" min="1" placeholder="Peso (solo +)">
-        <p class="manual">💡 1. Clic origen <br> 2. Clic destino. <br> Clic en el peso para editar/borrar.</p>
+        <input type="number" id="edgeWeight" value="1" min="1">
+        <p>1. Clic en Origen<br>2. Clic en Destino</p>
     </div>
-
     <div class="step">
-        <button onclick="exportarJSON()">Descargar JSON</button>
-        <button class="secondary" onclick="document.getElementById('fileInput').click()">Importar JSON</button>
-        <input type="file" id="fileInput" style="display:none" onchange="importarJSON(event)">
-        <button class="secondary" onclick="window.print()">Imprimir Grafo</button>
-        <button class="danger" onclick="limpiarTodo()">Borrar Lienzo</button>
+        <b>Edición Pro:</b><br>
+        • Doble clic en nodo para editar/borrar.<br>
+        • Clic en número de arista para editar/borrar.
     </div>
-
-    <button style="background: #4caf50;" onclick="window.location.href='matriz.html'">📊 Ver Matriz de Adyacencia</button>
-
-    <div class="step">
-        <h2>Guía Rápida</h2>
-        <div class="manual">
-            - <b>Mover:</b> Arrastra los nodos.<br>
-            - <b>Bucle:</b> Clic dos veces en el mismo nodo.<br>
-            - <b>Editar:</b> Toca el número de la arista.<br>
-            - <b>Guardar:</b> Se guarda solo en el navegador.
-        </div>
-    </div>
+    <button onclick="exportarJSON()">Descargar JSON</button>
+    <button class="danger" onclick="limpiarTodo()">Borrar Lienzo</button>
+    <button style="background: #4caf50; margin-top: auto;" onclick="window.location.href='matriz.html'">Ver Matriz</button>
 </div>
 
 <div id="canvas-container">
     <div id="area" onclick="canvasClick(event)">
         <svg id="svg">
             <defs>
-                <marker id="arrow-up" markerWidth="10" markerHeight="10" refX="22" refY="5" orient="auto">
+                <marker id="arrow-up" markerWidth="10" markerHeight="10" refX="28" refY="5" orient="auto">
                     <path d="M0,0 L10,5 L0,10 Z" fill="#c26cf8"/>
                 </marker>
-                <marker id="arrow-down" markerWidth="10" markerHeight="10" refX="22" refY="5" orient="auto">
+                <marker id="arrow-down" markerWidth="10" markerHeight="10" refX="28" refY="5" orient="auto">
                     <path d="M0,0 L10,5 L0,10 Z" fill="#bb20b3"/>
+                </marker>
+                <marker id="arrow-loop" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+                    <path d="M0,0 L10,5 L0,10 Z" fill="#903495"/>
                 </marker>
             </defs>
         </svg>
@@ -148,38 +96,18 @@ let draggingNode = null;
 const area = document.getElementById('area');
 const svg = document.getElementById('svg');
 
-// --- LÓGICA DE NODOS ---
-
 function agregarNodo(x, y, nombre = null) {
-    const input = document.getElementById('nodeName');
-    const name = nombre || input.value.trim();
-    if (!name) return;
-    if (nodos.some(n => n.nombre === name)) {
-        alert("Ese nombre ya existe");
-        return;
-    }
+    const name = nombre || document.getElementById('nodeName').value.trim();
+    if (!name || nodos.some(n => n.nombre === name)) return;
 
-    // Posición inicial (si no se da clic, se pone al centro)
     const posX = x || area.clientWidth / 2;
     const posY = y || area.clientHeight / 2;
 
-    // Validación de colisión
-    if (checkCollision(posX, posY)) {
-        alert("Espacio ocupado. Intenta en otro lugar.");
-        return;
-    }
+    if (checkCollision(posX, posY)) return;
 
-    const nodeObj = {
-        nombre: name,
-        x: posX,
-        y: posY,
-        el: null
-    };
-
+    const nodeObj = { nombre: name, x: posX, y: posY, el: null };
     crearElementoNodo(nodeObj);
     nodos.push(nodeObj);
-    input.value = "";
-    dibujarAristas();
     guardarLocal();
 }
 
@@ -190,86 +118,56 @@ function crearElementoNodo(node) {
     div.style.left = node.x + 'px';
     div.style.top = node.y + 'px';
 
-    // Eventos
-    div.onmousedown = (e) => startDrag(e, node);
-    div.onclick = (e) => {
+    div.onmousedown = (e) => { draggingNode = node; };
+    div.onclick = (e) => { e.stopPropagation(); seleccionarParaArista(node); };
+    div.ondblclick = (e) => { 
         e.stopPropagation();
-        seleccionarParaArista(node);
-    };
-    div.ondblclick = (e) => {
-        e.stopPropagation();
-        const nuevoNombre = prompt("Nuevo nombre para el nodo:", node.nombre);
-        if (nuevoNombre && !nodos.some(n => n.nombre === nuevoNombre)) {
-            actualizarNombreNodo(node, nuevoNombre);
+        const res = prompt("Editar nombre (o escribe 'borrar' para eliminar):", node.nombre);
+        if (res === 'borrar') {
+            nodos = nodos.filter(n => n !== node);
+            aristas = aristas.filter(a => a.from !== node.nombre && a.to !== node.nombre);
+            div.remove();
+        } else if (res && !nodos.some(n => n.nombre === res)) {
+            aristas.forEach(a => {
+                if (a.from === node.nombre) a.from = res;
+                if (a.to === node.nombre) a.to = res;
+            });
+            node.nombre = res;
+            div.textContent = res;
         }
+        dibujarAristas();
+        guardarLocal();
     };
 
     area.appendChild(div);
     node.el = div;
 }
 
-function actualizarNombreNodo(node, nuevo) {
-    aristas.forEach(a => {
-        if (a.from === node.nombre) a.from = nuevo;
-        if (a.to === node.nombre) a.to = nuevo;
-    });
-    node.nombre = nuevo;
-    node.el.textContent = nuevo;
-    dibujarAristas();
-    guardarLocal();
-}
-
-// --- DRAG AND DROP ---
-function startDrag(e, node) {
-    draggingNode = node;
-    node.el.style.transition = "none";
-}
-
 document.onmousemove = (e) => {
     if (!draggingNode) return;
     const rect = area.getBoundingClientRect();
-    let newX = e.clientX - rect.left;
-    let newY = e.clientY - rect.top;
-
-    // Colisión dinámica (simple)
-    if (!checkCollision(newX, newY, draggingNode)) {
-        draggingNode.x = newX;
-        draggingNode.y = newY;
-        draggingNode.el.style.left = newX + 'px';
-        draggingNode.el.style.top = newY + 'px';
+    let nx = e.clientX - rect.left;
+    let ny = e.clientY - rect.top;
+    if (!checkCollision(nx, ny, draggingNode)) {
+        draggingNode.x = nx; draggingNode.y = ny;
+        draggingNode.el.style.left = nx + 'px';
+        draggingNode.el.style.top = ny + 'px';
         dibujarAristas();
     }
 };
+document.onmouseup = () => { if(draggingNode) guardarLocal(); draggingNode = null; };
 
-document.onmouseup = () => {
-    if(draggingNode) guardarLocal();
-    draggingNode = null;
-};
-
-function checkCollision(x, y, ignoreNode = null) {
-    return nodos.some(n => {
-        if (n === ignoreNode) return false;
-        const dist = Math.sqrt((n.x - x)**2 + (n.y - y)**2);
-        return dist < 80; // Distancia mínima
-    });
+function checkCollision(x, y, ignore = null) {
+    return nodos.some(n => n !== ignore && Math.sqrt((n.x-x)**2 + (n.y-y)**2) < 70);
 }
 
-// --- ARISTAS ---
 function seleccionarParaArista(node) {
     if (!nodoSeleccionado) {
         nodoSeleccionado = node;
         node.el.classList.add('selected');
     } else {
         const peso = Math.abs(parseInt(document.getElementById('edgeWeight').value)) || 1;
-        
-        // Evitar duplicados exactos, pero permitir bidireccionales
-        const existe = aristas.find(a => a.from === nodoSeleccionado.nombre && a.to === node.nombre);
-        if (existe) {
-            existe.peso = peso;
-        } else {
-            aristas.push({ from: nodoSeleccionado.nombre, to: node.nombre, peso: peso });
-        }
-
+        aristas.push({ from: nodoSeleccionado.nombre, to: node.nombre, peso });
         nodoSeleccionado.el.classList.remove('selected');
         nodoSeleccionado = null;
         dibujarAristas();
@@ -278,154 +176,71 @@ function seleccionarParaArista(node) {
 }
 
 function dibujarAristas() {
-    // Limpiar SVG
     while (svg.lastChild && svg.lastChild.nodeName !== 'defs') svg.removeChild(svg.lastChild);
-
-    aristas.forEach((arista, index) => {
-        const n1 = nodos.find(n => n.nombre === arista.from);
-        const n2 = nodos.find(n => n.nombre === arista.to);
+    aristas.forEach((a, idx) => {
+        const n1 = nodos.find(n => n.nombre === a.from);
+        const n2 = nodos.find(n => n.nombre === a.to);
         if (!n1 || !n2) return;
 
         const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        const color = (n1.nombre <= n2.nombre) ? "var(--edge-up)" : "var(--edge-down)";
-        const marker = (n1.nombre <= n2.nombre) ? "url(#arrow-up)" : "url(#arrow-down)";
-        
-        const tieneInversa = aristas.some(a => a.from === arista.to && a.to === arista.from);
-        
-        let pathD, labelX, labelY;
+        let d, lx, ly, color, marker;
 
-        if (n1 === n2) { // Bucle
-            pathD = `M ${n1.x-10} ${n1.y-25} A 20 20 0 1 1 ${n1.x+10} ${n1.y-25}`;
-            labelX = n1.x; labelY = n1.y - 60;
-        } else if (tieneInversa) { // Curva para no solapar
-            const midX = (n1.x + n2.x) / 2;
-            const midY = (n1.y + n2.y) / 2;
-            const dx = n2.x - n1.x;
-            const dy = n2.y - n1.y;
-            const len = Math.sqrt(dx*dx + dy*dy);
-            const nx = -dy/len;
-            const ny = dx/len;
-            const curveFactor = 30;
-            const cpX = midX + nx * curveFactor;
-            const cpY = midY + ny * curveFactor;
-            pathD = `M ${n1.x} ${n1.y} Q ${cpX} ${cpY} ${n2.x} ${n2.y}`;
-            labelX = cpX; labelY = cpY;
-        } else { // Recta
-            pathD = `M ${n1.x} ${n1.y} L ${n2.x} ${n2.y}`;
-            labelX = (n1.x + n2.x) / 2;
-            labelY = (n1.y + n2.y) / 2;
+        if (n1 === n2) {
+            color = "var(--loop-color)";
+            marker = "url(#arrow-loop)";
+            d = `M ${n1.x-5} ${n1.y-25} A 15 15 0 1 1 ${n1.x+5} ${n1.y-25}`;
+            lx = n1.x; ly = n1.y - 55;
+        } else {
+            const tieneInversa = aristas.some(x => x.from === a.to && x.to === a.from);
+            color = (n1.nombre <= n2.nombre) ? "var(--edge-up)" : "var(--edge-down)";
+            marker = (n1.nombre <= n2.nombre) ? "url(#arrow-up)" : "url(#arrow-down)";
+            
+            if (tieneInversa) {
+                const mx = (n1.x + n2.x)/2, my = (n1.y + n2.y)/2;
+                const dx = n2.x - n1.x, dy = n2.y - n1.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                const ox = -dy/dist * 25, oy = dx/dist * 25;
+                d = `M ${n1.x} ${n1.y} Q ${mx+ox} ${my+oy} ${n2.x} ${n2.y}`;
+                lx = mx+ox; ly = my+oy;
+            } else {
+                d = `M ${n1.x} ${n1.y} L ${n2.x} ${n2.y}`;
+                lx = (n1.x + n2.x)/2; ly = (n1.y + n2.y)/2;
+            }
         }
 
         const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.setAttribute("d", pathD);
-        path.setAttribute("stroke", color);
-        path.setAttribute("fill", "none");
-        path.setAttribute("stroke-width", "3");
+        path.setAttribute("d", d); path.setAttribute("stroke", color);
+        path.setAttribute("fill", "none"); path.setAttribute("stroke-width", "3");
         path.setAttribute("marker-end", marker);
-        
-        // Etiqueta interactiva
-        const labelGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        labelGroup.setAttribute("class", "label-group");
-        labelGroup.onclick = () => editarArista(index);
 
-        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        rect.setAttribute("x", labelX - 15);
-        rect.setAttribute("y", labelY - 12);
-        rect.setAttribute("width", "30");
-        rect.setAttribute("height", "24");
-        rect.setAttribute("class", "label-rect");
+        const lGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        lGroup.setAttribute("class", "label-group");
+        lGroup.onclick = () => {
+            const res = prompt("Nuevo peso (o 'borrar'):", a.peso);
+            if (res === 'borrar') aristas.splice(idx, 1);
+            else if (!isNaN(parseInt(res))) a.peso = Math.abs(parseInt(res));
+            dibujarAristas(); guardarLocal();
+        };
 
-        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        text.setAttribute("x", labelX);
-        text.setAttribute("y", labelY + 5);
-        text.setAttribute("text-anchor", "middle");
-        text.setAttribute("class", "label-text");
-        text.textContent = arista.peso;
+        const r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        r.setAttribute("x", lx-12); r.setAttribute("y", ly-10); r.setAttribute("width", "24"); r.setAttribute("height", "18"); r.setAttribute("class", "label-rect");
+        const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        t.setAttribute("x", lx); t.setAttribute("y", ly+4); t.setAttribute("text-anchor", "middle"); t.setAttribute("class", "label-text");
+        t.textContent = a.peso;
 
-        labelGroup.appendChild(rect);
-        labelGroup.appendChild(text);
-        g.appendChild(path);
-        g.appendChild(labelGroup);
-        svg.appendChild(g);
+        lGroup.append(r, t); g.append(path, lGroup); svg.appendChild(g);
     });
 }
 
-function editarArista(index) {
-    const res = prompt("Editar peso (escribe 'borrar' para eliminar):", aristas[index].peso);
-    if (res === null) return;
-    if (res.toLowerCase() === 'borrar') {
-        aristas.splice(index, 1);
-    } else {
-        const val = Math.abs(parseInt(res));
-        if (!isNaN(val)) aristas[index].peso = val;
-    }
-    dibujarAristas();
-    guardarLocal();
-}
-
-function canvasClick(e) {
-    if (e.target.id === 'area') {
-        const rect = area.getBoundingClientRect();
-        agregarNodo(e.clientX - rect.left, e.clientY - rect.top);
-    }
-}
-
-// --- PERSISTENCIA ---
-function guardarLocal() {
-    localStorage.setItem("nodos_pro", JSON.stringify(nodos.map(n => ({nombre: n.nombre, x: n.x, y: n.y}))));
-    localStorage.setItem("aristas_pro", JSON.stringify(aristas));
-}
-
-function cargarLocal() {
-    const nData = JSON.parse(localStorage.getItem("nodos_pro"));
-    const aData = JSON.parse(localStorage.getItem("aristas_pro"));
-    if (nData) {
-        nData.forEach(nd => {
-            const nodeObj = { nombre: nd.nombre, x: nd.x, y: nd.y };
-            crearElementoNodo(nodeObj);
-            nodos.push(nodeObj);
-        });
-    }
-    if (aData) aristas = aData;
-    dibujarAristas();
-}
-
-function limpiarTodo() {
-    if (confirm("¿Borrar todo el lienzo?")) {
-        nodos.forEach(n => n.el.remove());
-        nodos = []; aristas = [];
-        localStorage.clear();
-        dibujarAristas();
-    }
-}
-
-function exportarJSON() {
-    const data = { nodos: nodos.map(n => ({nombre: n.nombre, x: n.x, y: n.y})), aristas };
-    const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = "grafo.json"; a.click();
-}
-
-function importarJSON(e) {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-        const data = JSON.parse(ev.target.result);
-        limpiarTodo();
-        data.nodos.forEach(n => {
-            const nodeObj = { nombre: n.nombre, x: n.x, y: n.y };
-            crearElementoNodo(nodeObj);
-            nodos.push(nodeObj);
-        });
-        aristas = data.aristas;
-        dibujarAristas();
-        guardarLocal();
-    };
-    reader.readAsText(file);
-}
-
-window.onload = cargarLocal;
+function canvasClick(e) { if(e.target.id === 'area') { const r = area.getBoundingClientRect(); agregarNodo(e.clientX-r.left, e.clientY-r.top); } }
+function guardarLocal() { localStorage.setItem("nodos_v2", JSON.stringify(nodos.map(n=>({nombre:n.nombre, x:n.x, y:n.y})))); localStorage.setItem("aristas_v2", JSON.stringify(aristas)); }
+function limpiarTodo() { if(confirm("¿Borrar todo?")) { localStorage.clear(); location.reload(); } }
+window.onload = () => {
+    const n = JSON.parse(localStorage.getItem("nodos_v2"));
+    const a = JSON.parse(localStorage.getItem("aristas_v2"));
+    if(n) n.forEach(d => agregarNodo(d.x, d.y, d.nombre));
+    if(a) { aristas = a; dibujarAristas(); }
+};
 </script>
 </body>
 </html>
