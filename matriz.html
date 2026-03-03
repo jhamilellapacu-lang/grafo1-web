@@ -132,8 +132,15 @@
 <script>
 function generarMatrizPro() {
     // 1. Obtener datos de LocalStorage
-    const nodos = JSON.parse(localStorage.getItem("nodos")) || [];
-    const aristas = JSON.parse(localStorage.getItem("aristas")) || [];
+
+    const data = JSON.parse(localStorage.getItem("grafoData"));
+    if (!data) return;
+
+    const nodos = data.nodos.map(n => n.nombre);
+    const aristas = data.aristas;
+
+    const n = nodos.length;
+    let matriz = Array.from({ length: n }, () => Array(n).fill(0));
 
     if (nodos.length === 0) {
         document.getElementById("matriz-render").innerHTML = "<h3>No hay nodos creados. Regresa al editor.</h3>";
@@ -228,3 +235,4 @@ window.onload = generarMatrizPro;
 
 </body>
 </html>
+
