@@ -2,60 +2,256 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Matriz de Adyacencia</title>
+    <title>Matriz de Adyacencia - Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #2196f3; --accent: #470f70; }
-        body { font-family: 'Comfortaa', sans-serif; padding: 40px; background: #f0f4f8; }
-        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-        th, td { padding: 12px; border: 1px solid #eee; text-align: center; }
-        th { background: var(--accent); color: white; }
-        .max-cell { background: #ffeb3b; font-weight: bold; }
-        .summary { background: #e3f2fd; font-weight: bold; }
-        button { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; }
+        :root {
+            --primary: #470f70;
+            --accent: #2196f3;
+            --bg: #f0f2f5;
+            --glass: rgba(255, 255, 255, 0.9);
+            --success: #4caf50;
+            --highlight: #ffeb3b;
+        }
+
+        body {
+            font-family: 'Comfortaa', cursive;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 40px;
+            color: #333;
+        }
+
+        .dashboard {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn-back {
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 15px;
+            font-weight: bold;
+            transition: 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-back:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(71, 15, 112, 0.3);
+        }
+
+        /* TABLA ESTILIZADA */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 20px;
+            border: 1px solid #e0e0e0;
+            background: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        th {
+            background: var(--primary);
+            color: white;
+            padding: 18px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #f0f0f0;
+            transition: 0.2s;
+        }
+
+        tr:hover td {
+            background-color: #f8f9ff;
+        }
+
+        .row-label {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: var(--primary);
+            border-right: 2px solid #eee;
+        }
+
+        .summary-cell {
+            background: #f0f7ff;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        /* Resaltado de Máximos */
+        .is-max {
+            background: var(--highlight) !important;
+            color: #000 !important;
+            position: relative;
+        }
+
+        .is-max::after {
+            content: '★';
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 10px;
+        }
+
+        /* TARJETAS DE ESTADÍSTICAS */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            text-align: center;
+            border-bottom: 5px solid var(--accent);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.03);
+        }
+
+        .stat-card.fila { border-color: var(--primary); }
+        .stat-card.col { border-color: var(--success); }
+
+        .stat-title {
+            display: block;
+            font-size: 0.7rem;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #222;
+        }
+
+        @media print {
+            .btn-back { display: none; }
+            body { padding: 0; background: white; }
+            .dashboard { box-shadow: none; border: none; }
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>Matriz de Adyacencia Dinámica</h1>
-        <button onclick="window.location.href='index.html'">⬅ Volver al Editor</button>
-        <div id="table-container"></div>
-    </div>
 
-    <script>
-        function render() {
-            const nodos = JSON.parse(localStorage.getItem("nodos_pro")) || [];
-            const aristas = JSON.parse(localStorage.getItem("aristas_pro")) || [];
-            const nNames = nodos.map(n => n.nombre);
-            const size = nNames.length;
-            
-            let matriz = Array.from({length: size}, () => Array(size).fill(0));
-            aristas.forEach(a => {
-                const i = nNames.indexOf(a.from);
-                const j = nNames.indexOf(a.to);
-                if(i !== -1 && j !== -1) matriz[i][j] = a.peso;
-            });
+<div class="dashboard">
+    <header>
+        <h1>Análisis de Adyacencia</h1>
+        <button class="btn-back" onclick="window.location.href='index.html'">← Volver al Editor</button>
+    </header>
 
-            let html = `<table><tr><th>Nodos</th>`;
-            nNames.forEach(name => html += `<th>${name}</th>`);
-            html += `<th class="summary">Suma</th><th class="summary">Cant.</th></tr>`;
+    <div class="table-wrapper" id="matriz-render">
+        </div>
 
-            let sumasFilas = matriz.map(r => r.reduce((a,b) => a+b, 0));
-            let cantFilas = matriz.map(r => r.filter(x => x > 0).length);
-            let maxSumF = Math.max(...sumasFilas);
-            let maxCantF = Math.max(...cantFilas);
+    <div class="stats-container" id="stats-render">
+        </div>
+</div>
 
-            matriz.forEach((row, i) => {
-                html += `<tr><th>${nNames[i]}</th>`;
-                row.forEach(val => html += `<td>${val}</td>`);
-                html += `<td class="${sumasFilas[i] === maxSumF && maxSumF > 0 ? 'max-cell' : 'summary'}">${sumasFilas[i]}</td>`;
-                html += `<td class="${cantFilas[i] === maxCantF && maxCantF > 0 ? 'max-cell' : 'summary'}">${cantFilas[i]}</td></tr>`;
-            });
+<script>
+    function generarMatrizUI() {
+        const nodos = JSON.parse(localStorage.getItem("nodos_v2")) || [];
+        const aristas = JSON.parse(localStorage.getItem("aristas_v2")) || [];
+        const n = nodos.length;
+        const names = nodos.map(x => x.nombre);
 
-            document.getElementById('table-container').innerHTML = html;
+        // Inicializar matriz
+        let matriz = Array.from({length: n}, () => Array(n).fill(0));
+        aristas.forEach(a => {
+            const i = names.indexOf(a.from);
+            const j = names.indexOf(a.to);
+            if(i !== -1 && j !== -1) matriz[i][j] = a.peso;
+        });
+
+        // Cálculos Filas
+        let sumasF = matriz.map(r => r.reduce((a,b) => a+b, 0));
+        let cantsF = matriz.map(r => r.filter(x => x > 0).length);
+
+        // Cálculos Columnas
+        let sumasC = Array(n).fill(0);
+        let cantsC = Array(n).fill(0);
+        for(let j=0; j<n; j++) {
+            for(let i=0; i<n; i++) {
+                sumasC[j] += matriz[i][j];
+                if(matriz[i][j] > 0) cantsC[j]++;
+            }
         }
-        render();
-    </script>
+
+        const maxSF = Math.max(...sumasF, 0);
+        const maxCF = Math.max(...cantsF, 0);
+        const maxSC = Math.max(...sumasC, 0);
+        const maxCC = Math.max(...cantsC, 0);
+
+        // Render Tabla
+        let html = `<table><thead><tr><th>Nodos</th>`;
+        names.forEach(name => html += `<th>${name}</th>`);
+        html += `<th class="summary-cell">Suma Σ</th><th class="summary-cell">Cant #</th></tr></thead><tbody>`;
+
+        matriz.forEach((row, i) => {
+            html += `<tr><td class="row-label">${names[i]}</td>`;
+            row.forEach(val => html += `<td>${val}</td>`);
+            html += `<td class="summary-cell ${sumasF[i] === maxSF && maxSF > 0 ? 'is-max' : ''}">${sumasF[i]}</td>`;
+            html += `<td class="summary-cell ${cantsF[i] === maxCF && maxCF > 0 ? 'is-max' : ''}">${cantsF[i]}</td></tr>`;
+        });
+
+        // Filas de totales inferiores
+        html += `<tr><td class="row-label">SUMA Σ</td>`;
+        sumasC.forEach(s => html += `<td class="summary-cell ${s === maxSC && maxSC > 0 ? 'is-max' : ''}">${s}</td>`);
+        html += `<td colspan="2" style="background:#eee"></td></tr>`;
+
+        html += `<tr><td class="row-label">CANT #</td>`;
+        cantsC.forEach(c => html += `<td class="summary-cell ${c === maxCC && maxCC > 0 ? 'is-max' : ''}">${c}</td>`);
+        html += `<td colspan="2" style="background:#eee"></td></tr></tbody></table>`;
+
+        document.getElementById('matriz-render').innerHTML = html;
+
+        // Render Tarjetas
+        document.getElementById('stats-render').innerHTML = `
+            <div class="stat-card fila"><span class="stat-title">Max Suma (Fila)</span><span class="stat-value">${maxSF}</span></div>
+            <div class="stat-card fila"><span class="stat-title">Max Cant (Fila)</span><span class="stat-value">${maxCF}</span></div>
+            <div class="stat-card col"><span class="stat-title">Max Suma (Col)</span><span class="stat-value">${maxSC}</span></div>
+            <div class="stat-card col"><span class="stat-title">Max Cant (Col)</span><span class="stat-value">${maxCC}</span></div>
+        `;
+    }
+
+    window.onload = generarMatrizUI;
+</script>
+
 </body>
 </html>
