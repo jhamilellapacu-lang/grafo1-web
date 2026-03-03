@@ -353,7 +353,7 @@ function limpiarTodo() {
   nodoSeleccionado = null;
 }
 function guardarDatos() {
-  localStorage.setItem("grafoData", JSON.stringify({
+  localStorage.getItem("grafoData", JSON.stringify({
     nodos: nodos.map(n => ({
       nombre: n.nombre,
       x: n.x,
@@ -366,4 +366,5 @@ function guardarDatos() {
 </body>
 
 </html>
+
 
