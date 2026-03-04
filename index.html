@@ -138,7 +138,7 @@ const svg = document.getElementById('svg');
 function cargarDatos() {
   const data = JSON.parse(localStorage.getItem("grafoData"));
   if (!data) return;
-
+}
   nodos = [];
   aristas = [];
   svg.querySelectorAll("g").forEach(e => e.remove());
@@ -155,6 +155,7 @@ function cargarDatos() {
 
     area.appendChild(div);
     nodos.push(nodoObj);
+    
   });
 
   aristas = data.aristas;
@@ -162,10 +163,10 @@ function cargarDatos() {
   aristas.forEach(a => {
     const n1 = nodos.find(n => n.nombre === a.from);
     const n2 = nodos.find(n => n.nombre === a.to);
-    if (n1 && n2) crearAristaVisual(n1, n2, a.peso);
+    if (n1 && n2) crearAristaVisual(n1, n2, a.peso, false);
+      aristas.push(...)
+      guardarDatos();   
   });
-}
-cargarDatos();
 
 function agregarNodo() {
   const nombre = document.getElementById('nodeName').value.trim();
@@ -190,7 +191,9 @@ function agregarNodo() {
   area.appendChild(div);
   nodos.push(nodoObj);
   document.getElementById('nodeName').value = '';
+  habilitarMovimiento(nodoObj);
   guardarDatos();
+
 }
 
 
@@ -204,6 +207,33 @@ function manejarClickNodo(nodo) {
     nodoSeleccionado.el.classList.remove('selected');
     nodoSeleccionado = null;
   }
+}
+function habilitarMovimiento(nodoObj) {
+  let offsetX, offsetY;
+  let moviendo = false;
+
+  nodoObj.el.addEventListener("mousedown", (e) => {
+    moviendo = true;
+    offsetX = e.clientX - nodoObj.x;
+    offsetY = e.clientY - nodoObj.y;
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!moviendo) return;
+
+    nodoObj.x = e.clientX - offsetX;
+    nodoObj.y = e.clientY - offsetY;
+
+    nodoObj.el.style.left = nodoObj.x + "px";
+    nodoObj.el.style.top = nodoObj.y + "px";
+
+    actualizarAristas();
+  });
+
+  document.addEventListener("mouseup", () => {
+    if (moviendo) guardarDatos();
+    moviendo = false;
+  });
 }
 function editarNodo() {
   const nombreActual = document.getElementById('deleteNodeName').value.trim();
@@ -223,15 +253,17 @@ function editarNodo() {
 
   guardarDatos();
 }
-function crearAristaVisual(n1, n2, peso) {
+function crearAristaVisual(n1, n2, peso, guardar = true)  {
   const esBucle = n1 === n2;
   const esMenorAMayor = n1.nombre.localeCompare(n2.nombre, undefined, {numeric: true}) <= 0;
   const color = esMenorAMayor ? "#2d5a27" : "#a8d5a2";
   const marker = esMenorAMayor ? "url(#arrow-dark)" : "url(#arrow-light)";
 
   const existeInversa = aristas.some(a => a.from === n2.nombre && a.to === n1.nombre);
+  if (guardar) {
   aristas.push({from: n1.nombre, to: n2.nombre, peso: parseInt(peso)});
   guardarDatos();
+}
   const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
   g.classList.add(`link-${n1.nombre}`, `link-${n2.nombre}`);
   g.style.cursor = "pointer";
@@ -292,13 +324,15 @@ function editarArista() {
   if (!nuevoPeso) return;
 
   const texto = aristaSeleccionada.querySelector("text");
+  const pesoAnterior = texto.textContent;
+
   texto.textContent = nuevoPeso;
 
-  aristas.forEach(a => {
-    if (a.peso == texto.textContent) {
-      a.peso = parseInt(nuevoPeso);
-    }
-  });
+  const index = aristas.findIndex(a => a.peso == pesoAnterior);
+  if (index !== -1) aristas[index].peso = parseInt(nuevoPeso);
+
+  guardarDatos();
+}
 
   guardarDatos();
 }
@@ -312,6 +346,17 @@ function eliminarAristaSeleccionada() {
   aristaSeleccionada = null;
 
   guardarDatos();
+}
+function actualizarAristas() {
+  while (svg.lastChild && svg.lastChild.nodeName !== 'defs') {
+    svg.removeChild(svg.lastChild);
+  }
+
+  aristas.forEach(a => {
+    const n1 = nodos.find(n => n.nombre === a.from);
+    const n2 = nodos.find(n => n.nombre === a.to);
+    if (n1 && n2) crearAristaVisual(n1, n2, a.peso, false);
+  });
 }
 function crearPath(d, color, marker) {
   const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -353,7 +398,7 @@ function limpiarTodo() {
   nodoSeleccionado = null;
 }
 function guardarDatos() {
-  localStorage.getItem("grafoData", JSON.stringify({
+  localStorage.setItem("grafoData", JSON.stringify({
     nodos: nodos.map(n => ({
       nombre: n.nombre,
       x: n.x,
@@ -366,5 +411,6 @@ function guardarDatos() {
 </body>
 
 </html>
+
 
 
