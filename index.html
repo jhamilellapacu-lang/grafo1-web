@@ -2,56 +2,43 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Graph Designer - Pesos Claros</title>
+    <title>Graph Designer - Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #1b4079;
-            --dark-green: #2d5a27;
-            --light-green: #a8d5a2;
+            --v-oscuro: #2d5a27;
+            --v-claro: #a8d5a2;
+            --v-fosfor: #39ff14;
             --bg: #f8fafc;
         }
 
-        body {
-            font-family: 'Comfortaa', cursive;
-            margin: 0;
-            display: flex;
-            height: 100vh;
-            background-color: var(--bg);
-        }
+        body { font-family: 'Comfortaa', cursive; margin: 0; display: flex; height: 100vh; background-color: var(--bg); }
 
         #sidebar {
-            width: 320px;
-            background: white;
-            padding: 20px;
+            width: 320px; background: white; padding: 20px;
             box-shadow: 2px 0 15px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            z-index: 100;
+            display: flex; flex-direction: column; gap: 10px; z-index: 100;
+            overflow-y: auto;
         }
 
-        .step { padding: 12px; border: 2px solid #edf2f7; border-radius: 12px; }
-        h2 { font-size: 1rem; color: var(--primary); margin-top: 0; }
+        .step { padding: 10px; border: 2px solid #edf2f7; border-radius: 12px; }
+        h2 { font-size: 0.9rem; color: var(--primary); margin: 0 0 5px 0; }
         
         input, button {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e0;
-            box-sizing: border-box;
-            font-family: inherit;
+            width: 100%; padding: 8px; margin-top: 5px;
+            border-radius: 8px; border: 1px solid #cbd5e0;
+            box-sizing: border-box; font-family: inherit;
         }
 
-        button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; }
+        button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        button:hover { opacity: 0.9; }
         button.secondary { background: #718096; }
         button.danger { background: #e53e3e; }
 
-        #canvas-container { flex-grow: 1; padding: 20px; display: flex; justify-content: center; align-items: center; }
+        #canvas-container { flex-grow: 1; padding: 20px; position: relative; }
         #area {
-            width: 100%; height: 100%;
-            background: white; border-radius: 30px;
+            width: 100%; height: 100%; background: white; border-radius: 30px;
             position: relative; box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
             border: 2px dashed #cbd5e0; overflow: hidden;
         }
@@ -61,61 +48,55 @@
             background: var(--primary); color: white;
             display: flex; align-items: center; justify-content: center;
             font-weight: bold; position: absolute;
-            transform: translate(-50%, -50%); cursor: pointer;
+            transform: translate(-50%, -50%); cursor: move;
             z-index: 10; border: 3px solid white; user-select: none;
         }
 
         .nodo.selected { background: #ff9800 !important; box-shadow: 0 0 15px rgba(255, 152, 0, 0.6); }
 
         svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        g { pointer-events: all; }
         .label-peso { 
-            font-weight: bold; 
-            paint-order: stroke; 
-            stroke: white; 
-            stroke-width: 5px; 
-            font-size: 14px; 
+            font-weight: bold; paint-order: stroke; stroke: white; 
+            stroke-width: 4px; font-size: 14px; cursor: pointer;
         }
     </style>
 </head>
 <body>
 
 <div id="sidebar">
-    <h1 style="font-size: 1.3rem; color: var(--primary); margin: 0;">Diseña tu grafo</h1>
+    <h1 style="font-size: 1.2rem; color: var(--primary);">Grafo Designer</h1>
+    
     <div class="step">
-        <h2>1. Nombre del Nodo</h2>
-        <input type="text" id="nodeName" placeholder="Ej: A, 1, Madrid">
+        <h2>1. Nodo</h2>
+        <input type="text" id="nodeName" placeholder="Nombre (A, B...)">
         <button onclick="agregarNodo()">Añadir Nodo</button>
     </div>
     
     <div class="step">
-        <h2>2. Peso Arista</h2>
-        <input type="number" id="edgeWeight" value="1">
-        <p style="font-size: 0.85rem; color: #4a5568;">Haz clic en origen y luego en destino.</p>
+        <h2>2. Arista</h2>
+        <input type="number" id="edgeWeight" value="1" placeholder="Peso">
+        <p style="font-size: 0.7rem;">Clic en origen y luego en destino.</p>
     </div>
 
     <div class="step">
         <h2>Gestión</h2>
-        <input type="text" id="deleteNodeName" placeholder="Nombre de nodo">
-        <button class="secondary" onclick="borrarNodoPorNombre()">Borrar Nodo</button>
-        <button onclick="editarNodo()" style="margin-top:10px;">Editar Nodo</button>
-        <button class="danger" onclick="eliminarAristaSeleccionada()" style="margin-top:10px;">Eliminar Arista</button>
-        <button onclick="editarArista()" style="margin-top:10px;">Editar Arista</button>
-        <button class="danger" onclick="limpiarTodo()" style="margin-top: 10px;">Limpiar Lienzo</button>
+        <input type="text" id="manageInput" placeholder="Nombre de nodo">
+        <button class="secondary" onclick="editarNodo()">Renombrar Nodo</button>
+        <button class="danger" onclick="borrarNodo()">Borrar Nodo</button>
+        <hr>
+        <button class="secondary" onclick="editarArista()">Editar Peso Arista</button>
+        <button class="danger" onclick="eliminarAristaSeleccionada()">Borrar Arista</button>
+        <button class="danger" onclick="limpiarTodo()" style="margin-top: 10px;">Limpiar Todo</button>
     </div>
+
     <button onclick="window.location.href='matriz.html'">Ver Matriz</button>
 </div>
 
 <div id="canvas-container">
     <div id="area">
         <svg id="svg">
-            <defs>
-                <marker id="arrow-dark" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-                    <path d="M0,0 L8,4 L0,8 Z" fill="#2d5a27"/>
-                </marker>
-                <marker id="arrow-light" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-                    <path d="M0,0 L8,4 L0,8 Z" fill="#a8d5a2"/>
-                </marker>
-            </defs>
+            <defs id="defs"></defs>
         </svg>
     </div>
 </div>
@@ -124,54 +105,52 @@
 let nodos = [];
 let aristas = [];
 let nodoSeleccionado = null;
-let aristaSeleccionada = null;
+let aristaSeleccionadaIdx = null;
 const area = document.getElementById('area');
 const svg = document.getElementById('svg');
 
+function guardarDatos() {
+    localStorage.setItem("grafoData", JSON.stringify({
+        nodos: nodos.map(n => ({ nombre: n.nombre, x: n.x, y: n.y })),
+        aristas: aristas
+    }));
+}
+
 function cargarDatos() {
-    const rawData = localStorage.getItem("grafoData");
-    if (!rawData) return;
-    const data = JSON.parse(rawData);
-
-    nodos = [];
+    const raw = localStorage.getItem("grafoData");
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    data.nodos.forEach(n => crearElementoNodo(n.nombre, n.x, n.y));
     aristas = data.aristas || [];
-
-    data.nodos.forEach(n => {
-        const div = document.createElement('div');
-        div.className = 'nodo';
-        div.textContent = n.nombre;
-        div.style.left = n.x + 'px';
-        div.style.top = n.y + 'px';
-
-        const nodoObj = { nombre: n.nombre, x: n.x, y: n.y, el: div };
-        div.onclick = () => manejarClickNodo(nodoObj);
-        area.appendChild(div);
-        nodos.push(nodoObj);
-        habilitarMovimiento(nodoObj);
-    });
-
-    actualizarAristas();
+    actualizarVista();
 }
 
 function agregarNodo() {
     const nombre = document.getElementById('nodeName').value.trim();
-    if (!nombre || nodos.some(n => n.nombre === nombre)) return alert("Nombre inválido o duplicado");
-    
-    const x = 100 + Math.random() * (area.clientWidth - 200);
-    const y = 100 + Math.random() * (area.clientHeight - 200);
-
-    const div = document.createElement('div');
-    div.className = 'nodo'; div.textContent = nombre;
-    div.style.left = x + 'px'; div.style.top = y + 'px';
-    
-    const nodoObj = { nombre, x, y, el: div };
-    div.onclick = () => manejarClickNodo(nodoObj);
-    area.appendChild(div);
-    nodos.push(nodoObj);
-    
-    habilitarMovimiento(nodoObj);
+    if (!nombre || nodos.some(n => n.nombre === nombre)) return alert("Inválido");
+    const x = 50 + Math.random() * (area.clientWidth - 100);
+    const y = 50 + Math.random() * (area.clientHeight - 100);
+    crearElementoNodo(nombre, x, y);
     guardarDatos();
     document.getElementById('nodeName').value = '';
+}
+
+function crearElementoNodo(nombre, x, y) {
+    const div = document.createElement('div');
+    div.className = 'nodo';
+    div.textContent = nombre;
+    div.style.left = x + 'px';
+    div.style.top = y + 'px';
+    
+    const nodoObj = { nombre, x, y, el: div };
+    div.onclick = (e) => {
+        e.stopPropagation();
+        manejarClickNodo(nodoObj);
+    };
+    
+    habilitarMovimiento(nodoObj);
+    area.appendChild(div);
+    nodos.push(nodoObj);
 }
 
 function manejarClickNodo(nodo) {
@@ -179,16 +158,18 @@ function manejarClickNodo(nodo) {
         nodoSeleccionado = nodo;
         nodo.el.classList.add('selected');
     } else {
-        const peso = document.getElementById('edgeWeight').value || "1";
-        crearAristaVisual(nodoSeleccionado, nodo, peso, true);
+        const peso = parseInt(document.getElementById('edgeWeight').value) || 1;
+        aristas.push({ from: nodoSeleccionado.nombre, to: nodo.nombre, peso: peso });
         nodoSeleccionado.el.classList.remove('selected');
         nodoSeleccionado = null;
+        guardarDatos();
+        actualizarVista();
     }
 }
 
 function habilitarMovimiento(nodoObj) {
     let moviendo = false;
-    nodoObj.el.onmousedown = (e) => { moviendo = true; };
+    nodoObj.el.onmousedown = () => { moviendo = true; };
     document.onmousemove = (e) => {
         if (!moviendo) return;
         const rect = area.getBoundingClientRect();
@@ -196,67 +177,88 @@ function habilitarMovimiento(nodoObj) {
         nodoObj.y = e.clientY - rect.top;
         nodoObj.el.style.left = nodoObj.x + "px";
         nodoObj.el.style.top = nodoObj.y + "px";
-        actualizarAristas();
+        actualizarVista();
     };
-    document.onmouseup = () => {
-        if (moviendo) guardarDatos();
-        moviendo = false;
-    };
+    document.onmouseup = () => { if(moviendo) guardarDatos(); moviendo = false; };
 }
 
-function crearAristaVisual(n1, n2, peso, guardar = false) {
-    if (guardar) {
-        aristas.push({ from: n1.nombre, to: n2.nombre, peso: parseInt(peso) });
-        guardarDatos();
-    }
-    actualizarAristas();
-}
-
-function actualizarAristas() {
-    // Limpiar SVG menos los markers
-    const markers = svg.querySelector('defs');
+function actualizarVista() {
+    const defs = document.getElementById('defs');
     svg.innerHTML = '';
-    svg.appendChild(markers);
+    svg.appendChild(defs);
+    defs.innerHTML = '';
 
-    aristas.forEach(a => {
+    aristas.forEach((a, index) => {
         const n1 = nodos.find(n => n.nombre === a.from);
         const n2 = nodos.find(n => n.nombre === a.to);
         if (!n1 || !n2) return;
 
         const esBucle = n1 === n2;
-        const color = "#2d5a27";
-        const marker = "url(#arrow-dark)";
+        const existeInversa = aristas.some(other => other.from === a.to && other.to === a.from && n1 !== n2);
+        
+        // Lógica de Colores
+        let color = "#2d5a27"; // Verde Oscuro default
+        if (esBucle) color = "#39ff14"; // Fosforescente
+        else if (a.from.localeCompare(a.to, undefined, {numeric: true}) > 0) color = "#a8d5a2"; // Verde Claro
+
+        const markerId = `arrow-${index}`;
+        crearMarker(markerId, color);
+
         const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        g.onclick = () => { aristaSeleccionadaIdx = index; alert("Arista seleccionada: " + a.from + " -> " + a.to); };
 
         if (esBucle) {
-            const d = `M ${n1.x-10} ${n1.y-20} A 20 20 0 1 1 ${n1.x+10} ${n1.y-20}`;
-            g.appendChild(crearPath(d, color, marker));
-            g.appendChild(crearTextoSVG(n1.x, n1.y - 50, a.peso, color));
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            const d = `M ${n1.x-5} ${n1.y-25} A 15 15 0 1 1 ${n1.x+20} ${n1.y-20}`;
+            path.setAttribute("d", d);
+            path.setAttribute("stroke", color);
+            path.setAttribute("fill", "none");
+            path.setAttribute("stroke-width", "3");
+            path.setAttribute("marker-end", `url(#${markerId})`);
+            g.appendChild(path);
+            g.appendChild(crearTextoSVG(n1.x + 15, n1.y - 45, a.peso, color));
         } else {
             const dx = n2.x - n1.x, dy = n2.y - n1.y;
             const dist = Math.sqrt(dx*dx + dy*dy);
             const ux = dx/dist, uy = dy/dist;
-            const d = `M ${n1.x + ux*25} ${n1.y + uy*25} L ${n2.x - ux*30} ${n2.y - uy*30}`;
-            g.appendChild(crearPath(d, color, marker));
-            g.appendChild(crearTextoSVG((n1.x+n2.x)/2 - uy*15, (n1.y+n2.y)/2 + ux*15, a.peso, color));
-        }
 
-        g.style.cursor = "pointer";
-        g.onclick = () => {
-            if(aristaSeleccionada) aristaSeleccionada.firstChild.setAttribute("stroke-width", "2.5");
-            aristaSeleccionada = g;
-            g.firstChild.setAttribute("stroke-width", "5");
-        };
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            let d, tx, ty;
+
+            if (existeInversa) {
+                // Curva
+                const midX = (n1.x + n2.x) / 2, midY = (n1.y + n2.y) / 2;
+                const cpX = midX - uy * 30, cpY = midY + ux * 30;
+                d = `M ${n1.x + ux*25} ${n1.y + uy*25} Q ${cpX} ${cpY} ${n2.x - ux*30} ${n2.y - uy*30}`;
+                tx = cpX; ty = cpY;
+            } else {
+                // Recta
+                d = `M ${n1.x + ux*25} ${n1.y + uy*25} L ${n2.x - ux*30} ${n2.y - uy*30}`;
+                tx = (n1.x + n2.x)/2 - uy*15; ty = (n1.y + n2.y)/2 + ux*15;
+            }
+
+            path.setAttribute("d", d);
+            path.setAttribute("stroke", color);
+            path.setAttribute("fill", "none");
+            path.setAttribute("stroke-width", "3");
+            path.setAttribute("marker-end", `url(#${markerId})`);
+            g.appendChild(path);
+            g.appendChild(crearTextoSVG(tx, ty, a.peso, color));
+        }
         svg.appendChild(g);
     });
 }
 
-function crearPath(d, color, marker) {
+function crearMarker(id, color) {
+    const m = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+    m.setAttribute("id", id); m.setAttribute("viewBox", "0 0 10 10");
+    m.setAttribute("refX", "9"); m.setAttribute("refY", "5");
+    m.setAttribute("markerWidth", "6"); m.setAttribute("markerHeight", "6");
+    m.setAttribute("orient", "auto-start-reverse");
     const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    p.setAttribute("d", d); p.setAttribute("stroke", color);
-    p.setAttribute("fill", "none"); p.setAttribute("stroke-width", "2.5");
-    p.setAttribute("marker-end", marker);
-    return p;
+    p.setAttribute("d", "M 0 0 L 10 5 L 0 10 z"); p.setAttribute("fill", color);
+    m.appendChild(p);
+    document.getElementById('defs').appendChild(m);
 }
 
 function crearTextoSVG(x, y, txt, color) {
@@ -267,37 +269,50 @@ function crearTextoSVG(x, y, txt, color) {
     return t;
 }
 
-function borrarNodoPorNombre() {
-    const nombre = document.getElementById('deleteNodeName').value.trim();
-    nodos = nodos.filter(n => {
-        if(n.nombre === nombre) { n.el.remove(); return false; }
-        return true;
-    });
-    aristas = aristas.filter(a => a.from !== nombre && a.to !== nombre);
-    guardarDatos();
-    actualizarAristas();
+// FUNCIONES DE GESTIÓN
+function editarNodo() {
+    const viejo = document.getElementById('manageInput').value.trim();
+    const nuevo = prompt("Nuevo nombre para " + viejo);
+    if(!nuevo) return;
+    const n = nodos.find(nod => nod.nombre === viejo);
+    if(n) {
+        n.nombre = nuevo; n.el.textContent = nuevo;
+        aristas.forEach(a => {
+            if(a.from === viejo) a.from = nuevo;
+            if(a.to === viejo) a.to = nuevo;
+        });
+        guardarDatos(); actualizarVista();
+    }
+}
+
+function borrarNodo() {
+    const nombre = document.getElementById('manageInput').value.trim();
+    const idx = nodos.findIndex(n => n.nombre === nombre);
+    if(idx !== -1) {
+        nodos[idx].el.remove();
+        nodos.splice(idx, 1);
+        aristas = aristas.filter(a => a.from !== nombre && a.to !== nombre);
+        guardarDatos(); actualizarVista();
+    }
+}
+
+function editarArista() {
+    if(aristaSeleccionadaIdx === null) return alert("Haz clic en una arista primero");
+    const nuevo = prompt("Nuevo peso:");
+    if(nuevo !== null) {
+        aristas[aristaSeleccionadaIdx].peso = parseInt(nuevo);
+        guardarDatos(); actualizarVista();
+    }
 }
 
 function eliminarAristaSeleccionada() {
-    if (!aristaSeleccionada) return alert("Selecciona una arista (clic en la línea)");
-    const peso = aristaSeleccionada.querySelector("text").textContent;
-    aristas = aristas.filter(a => a.peso != peso);
-    aristaSeleccionada = null;
-    guardarDatos();
-    actualizarAristas();
+    if(aristaSeleccionadaIdx === null) return alert("Haz clic en una arista primero");
+    aristas.splice(aristaSeleccionadaIdx, 1);
+    aristaSeleccionadaIdx = null;
+    guardarDatos(); actualizarVista();
 }
 
-function limpiarTodo() {
-    localStorage.clear();
-    location.reload();
-}
-
-function guardarDatos() {
-    localStorage.setItem("grafoData", JSON.stringify({
-        nodos: nodos.map(n => ({ nombre: n.nombre, x: n.x, y: n.y })),
-        aristas: aristas
-    }));
-}
+function limpiarTodo() { localStorage.clear(); location.reload(); }
 
 window.onload = cargarDatos;
 </script>
