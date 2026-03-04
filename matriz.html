@@ -131,29 +131,45 @@
 </div>
 
 <script>
+let lastDataHash = "";
+
 function generarMatrizPro() {
+    // 1. CLAVE SINCRONIZADA: Debe ser "grafoData" igual que en el index.html
     const rawData = localStorage.getItem("grafoData");
+    
     if (!rawData) {
-        document.getElementById("matriz-render").innerHTML = "<h3>No hay datos disponibles.</h3>";
+        document.getElementById("matriz-render").innerHTML = "<div style='text-align:center; padding:20px;'><h3>No hay datos disponibles.</h3><p>Crea nodos en el editor primero.</p></div>";
         return;
     }
+
+    // Evitar renderizado innecesario si los datos no han cambiado
+    if (rawData === lastDataHash) return;
+    lastDataHash = rawData;
+
     const data = JSON.parse(rawData);
     const nodos = data.nodos.map(n => n.nombre);
     const aristas = data.aristas;
     const n = nodos.length;
 
     if (n === 0) {
-        document.getElementById("matriz-render").innerHTML = "<h3>Crea nodos en el editor primero.</h3>";
+        document.getElementById("matriz-render").innerHTML = "<h3>El grafo está vacío.</h3>";
         return;
     }
 
+    // Crear matriz inicializada en 0
     let matriz = Array.from({ length: n }, () => Array(n).fill(0));
+    
+    // Llenar matriz con los pesos de las aristas
     aristas.forEach(a => {
         const i = nodos.indexOf(a.from);
         const j = nodos.indexOf(a.to);
-        if (i !== -1 && j !== -1) matriz[i][j] = parseInt(a.peso);
+        if (i !== -1 && j !== -1) {
+            // Si hay múltiples aristas entre los mismos nodos, las sumamos o tomamos la última
+            matriz[i][j] = parseInt(a.peso);
+        }
     });
 
+    // Cálculos de Sumas y Cantidades
     let sumF = matriz.map(row => row.reduce((a, b) => a + b, 0));
     let contF = matriz.map(row => row.filter(x => x !== 0).length);
     let sumC = Array(n).fill(0), contC = Array(n).fill(0);
@@ -168,31 +184,45 @@ function generarMatrizPro() {
     const maxSF = Math.max(...sumF), maxSC = Math.max(...sumC);
     const maxCF = Math.max(...contF), maxCC = Math.max(...contC);
 
+    // Renderizado de la tabla
     let html = `<table><tr><th>NODOS</th>`;
     nodos.forEach(nod => html += `<th>${nod}</th>`);
     html += `<th class="calc-cell">SUMA Σ</th><th class="calc-cell">CANT #</th></tr>`;
 
     for (let i = 0; i < n; i++) {
         html += `<tr><th>${nodos[i]}</th>`;
-        for (let j = 0; j < n; j++) html += `<td>${matriz[i][j]}</td>`;
+        for (let j = 0; j < n; j++) {
+            html += `<td>${matriz[i][j]}</td>`;
+        }
         html += `<td class="calc-cell ${sumF[i]===maxSF && maxSF>0 ? 'is-max' : ''}">${sumF[i]}</td>`;
         html += `<td class="calc-cell ${contF[i]===maxCF && maxCF>0 ? 'is-max' : ''}">${contF[i]}</td></tr>`;
     }
 
+    // Fila de Sumas (Columnas)
     html += `<tr><th class="calc-cell">SUMA Σ</th>`;
     sumC.forEach(s => html += `<td class="calc-cell ${s===maxSC && maxSC>0 ? 'is-max' : ''}">${s}</td>`);
-    html += `<td colspan="2"></td></tr><tr><th class="calc-cell">CANT #</th>`;
+    html += `<td colspan="2" style="background:transparent; border:none;"></td></tr>`;
+
+    // Fila de Cantidades (Columnas)
+    html += `<tr><th class="calc-cell">CANT #</th>`;
     contC.forEach(c => html += `<td class="calc-cell ${c===maxCC && maxCC>0 ? 'is-max' : ''}">${c}</td>`);
-    html += `<td colspan="2"></td></tr></table>`;
+    html += `<td colspan="2" style="background:transparent; border:none;"></td></tr></table>`;
 
     document.getElementById("matriz-render").innerHTML = html;
+    
+    // Actualizar tarjetas de estadísticas
     document.getElementById("max-sum-f").innerText = maxSF;
     document.getElementById("max-sum-c").innerText = maxSC;
     document.getElementById("max-cont-f").innerText = maxCF;
     document.getElementById("max-cont-c").innerText = maxCC;
 }
 
-window.onload = generarMatrizPro;
+// Ejecutar al cargar
+window.onload = () => {
+    generarMatrizPro();
+    // Sincronización automática: Revisa cambios cada 1 segundo
+    setInterval(generarMatrizPro, 1000);
+};
 </script>
 </body>
 </html>
