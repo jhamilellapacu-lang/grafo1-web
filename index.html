@@ -11,9 +11,10 @@
             --v-claro: #a8d5a2;
             --v-fosfor: #39ff14;
             --bg: #f8fafc;
+            --selected: #ff9800;
         }
 
-        body { font-family: 'Comfortaa', cursive; margin: 0; display: flex; height: 100vh; background-color: var(--bg); }
+        body { font-family: 'Comfortaa', cursive; margin: 0; display: flex; height: 100vh; background-color: var(--bg); overflow: hidden; }
 
         #sidebar {
             width: 320px; background: white; padding: 20px;
@@ -22,75 +23,81 @@
             overflow-y: auto;
         }
 
-        .step { padding: 10px; border: 2px solid #edf2f7; border-radius: 12px; }
-        h2 { font-size: 0.9rem; color: var(--primary); margin: 0 0 5px 0; }
+        .step { padding: 12px; border: 2px solid #edf2f7; border-radius: 12px; background: #fff; }
+        h2 { font-size: 0.9rem; color: var(--primary); margin: 0 0 8px 0; border-bottom: 1px solid #eee; padding-bottom: 5px; }
         
         input, button {
-            width: 100%; padding: 8px; margin-top: 5px;
+            width: 100%; padding: 10px; margin-top: 5px;
             border-radius: 8px; border: 1px solid #cbd5e0;
             box-sizing: border-box; font-family: inherit;
         }
 
-        button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        button:hover { opacity: 0.9; }
+        button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        button:hover { filter: brightness(1.2); transform: translateY(-1px); }
         button.secondary { background: #718096; }
         button.danger { background: #e53e3e; }
 
         #canvas-container { flex-grow: 1; padding: 20px; position: relative; }
         #area {
             width: 100%; height: 100%; background: white; border-radius: 30px;
-            position: relative; box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+            position: relative; box-shadow: inset 0 0 15px rgba(0,0,0,0.05);
             border: 2px dashed #cbd5e0; overflow: hidden;
         }
 
         .nodo {
-            width: 50px; height: 50px; border-radius: 50%;
+            width: 55px; height: 55px; border-radius: 50%;
             background: var(--primary); color: white;
             display: flex; align-items: center; justify-content: center;
             font-weight: bold; position: absolute;
-            transform: translate(-50%, -50%); cursor: move;
+            transform: translate(-50%, -50%); cursor: grab;
             z-index: 10; border: 3px solid white; user-select: none;
+            transition: box-shadow 0.2s, background 0.2s;
         }
 
-        .nodo.selected { background: #ff9800 !important; box-shadow: 0 0 15px rgba(255, 152, 0, 0.6); }
+        .nodo.selected { background: var(--selected) !important; box-shadow: 0 0 20px rgba(255, 152, 0, 0.5); border-color: white; }
 
         svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-        g { pointer-events: all; }
+        g { pointer-events: all; cursor: pointer; }
+        
+        .arista-path { transition: stroke-width 0.2s, stroke 0.2s; }
+        .arista-path.active { stroke: #000 !important; stroke-width: 5px !important; }
+
         .label-peso { 
             font-weight: bold; paint-order: stroke; stroke: white; 
-            stroke-width: 4px; font-size: 14px; cursor: pointer;
+            stroke-width: 4px; font-size: 14px;
         }
     </style>
 </head>
 <body>
 
 <div id="sidebar">
-    <h1 style="font-size: 1.2rem; color: var(--primary);">Grafo Designer</h1>
+    <h1 style="font-size: 1.3rem; color: var(--primary); margin-bottom: 5px;">Grafo Designer</h1>
     
     <div class="step">
-        <h2>1. Nodo</h2>
-        <input type="text" id="nodeName" placeholder="Nombre (A, B...)">
-        <button onclick="agregarNodo()">Añadir Nodo</button>
+        <h2>1. Crear Nodo</h2>
+        <input type="text" id="nodeName" placeholder="Nombre (Ej: A)">
+        <button onclick="agregarNodo()">Añadir al Mapa</button>
     </div>
     
     <div class="step">
-        <h2>2. Arista</h2>
-        <input type="number" id="edgeWeight" value="1" placeholder="Peso">
-        <p style="font-size: 0.7rem;">Clic en origen y luego en destino.</p>
+        <h2>2. Conectar (Arista)</h2>
+        <label style="font-size: 0.8rem;">Peso / Atributo:</label>
+        <input type="number" id="edgeWeight" value="1">
+        <p style="font-size: 0.7rem; color: #666;">Selecciona un nodo y luego otro para conectar.</p>
     </div>
 
     <div class="step">
-        <h2>Gestión</h2>
-        <input type="text" id="manageInput" placeholder="Nombre de nodo">
+        <h2>3. Gestión de Selección</h2>
+        <p style="font-size: 0.7rem; margin-bottom: 10px;">Selecciona un elemento en el lienzo para editarlo:</p>
         <button class="secondary" onclick="editarNodo()">Renombrar Nodo</button>
         <button class="danger" onclick="borrarNodo()">Borrar Nodo</button>
-        <hr>
-        <button class="secondary" onclick="editarArista()">Editar Peso Arista</button>
+        <div style="margin: 10px 0; border-top: 1px dashed #ccc;"></div>
+        <button class="secondary" onclick="editarArista()">Cambiar Peso (Atributo)</button>
         <button class="danger" onclick="eliminarAristaSeleccionada()">Borrar Arista</button>
-        <button class="danger" onclick="limpiarTodo()" style="margin-top: 10px;">Limpiar Todo</button>
     </div>
 
-    <button onclick="window.location.href='matriz.html'">Ver Matriz</button>
+    <button class="danger" onclick="limpiarTodo()" style="margin-top: auto;">Limpiar Lienzo Completo</button>
+    <button onclick="window.location.href='matriz.html'">Generar Matriz</button>
 </div>
 
 <div id="canvas-container">
@@ -106,6 +113,7 @@ let nodos = [];
 let aristas = [];
 let nodoSeleccionado = null;
 let aristaSeleccionadaIdx = null;
+
 const area = document.getElementById('area');
 const svg = document.getElementById('svg');
 
@@ -127,9 +135,9 @@ function cargarDatos() {
 
 function agregarNodo() {
     const nombre = document.getElementById('nodeName').value.trim();
-    if (!nombre || nodos.some(n => n.nombre === nombre)) return alert("Inválido");
-    const x = 50 + Math.random() * (area.clientWidth - 100);
-    const y = 50 + Math.random() * (area.clientHeight - 100);
+    if (!nombre || nodos.some(n => n.nombre === nombre)) return alert("Nombre no válido o ya existe");
+    const x = 60 + Math.random() * (area.clientWidth - 120);
+    const y = 60 + Math.random() * (area.clientHeight - 120);
     crearElementoNodo(nombre, x, y);
     guardarDatos();
     document.getElementById('nodeName').value = '';
@@ -143,9 +151,23 @@ function crearElementoNodo(nombre, x, y) {
     div.style.top = y + 'px';
     
     const nodoObj = { nombre, x, y, el: div };
+    
     div.onclick = (e) => {
         e.stopPropagation();
-        manejarClickNodo(nodoObj);
+        if (nodoSeleccionado && nodoSeleccionado !== nodoObj) {
+            const peso = parseInt(document.getElementById('edgeWeight').value) || 1;
+            aristas.push({ from: nodoSeleccionado.nombre, to: nodoObj.nombre, peso: peso });
+            nodoSeleccionado.el.classList.remove('selected');
+            nodoSeleccionado = null;
+            guardarDatos();
+            actualizarVista();
+        } else {
+            if(nodoSeleccionado) nodoSeleccionado.el.classList.remove('selected');
+            nodoSeleccionado = nodoObj;
+            nodoObj.el.classList.add('selected');
+            aristaSeleccionadaIdx = null; // Deseleccionar arista si se toca un nodo
+            actualizarVista();
+        }
     };
     
     habilitarMovimiento(nodoObj);
@@ -153,33 +175,22 @@ function crearElementoNodo(nombre, x, y) {
     nodos.push(nodoObj);
 }
 
-function manejarClickNodo(nodo) {
-    if (!nodoSeleccionado) {
-        nodoSeleccionado = nodo;
-        nodo.el.classList.add('selected');
-    } else {
-        const peso = parseInt(document.getElementById('edgeWeight').value) || 1;
-        aristas.push({ from: nodoSeleccionado.nombre, to: nodo.nombre, peso: peso });
-        nodoSeleccionado.el.classList.remove('selected');
-        nodoSeleccionado = null;
-        guardarDatos();
-        actualizarVista();
-    }
-}
-
 function habilitarMovimiento(nodoObj) {
     let moviendo = false;
-    nodoObj.el.onmousedown = () => { moviendo = true; };
+    nodoObj.el.onmousedown = () => { moviendo = true; nodoObj.el.style.cursor = 'grabbing'; };
     document.onmousemove = (e) => {
         if (!moviendo) return;
         const rect = area.getBoundingClientRect();
-        nodoObj.x = e.clientX - rect.left;
-        nodoObj.y = e.clientY - rect.top;
+        nodoObj.x = Math.max(25, Math.min(e.clientX - rect.left, rect.width - 25));
+        nodoObj.y = Math.max(25, Math.min(e.clientY - rect.top, rect.height - 25));
         nodoObj.el.style.left = nodoObj.x + "px";
         nodoObj.el.style.top = nodoObj.y + "px";
         actualizarVista();
     };
-    document.onmouseup = () => { if(moviendo) guardarDatos(); moviendo = false; };
+    document.onmouseup = () => { 
+        if(moviendo) { guardarDatos(); nodoObj.el.style.cursor = 'grab'; }
+        moviendo = false; 
+    };
 }
 
 function actualizarVista() {
@@ -194,57 +205,63 @@ function actualizarVista() {
         if (!n1 || !n2) return;
 
         const esBucle = n1 === n2;
-        const existeInversa = aristas.some(other => other.from === a.to && other.to === a.from && n1 !== n2);
+        const dobleSentido = aristas.some(other => other.from === a.to && other.to === a.from && n1 !== n2);
         
-        // Lógica de Colores
-        let color = "#2d5a27"; // Verde Oscuro default
-        if (esBucle) color = "#39ff14"; // Fosforescente
-        else if (a.from.localeCompare(a.to, undefined, {numeric: true}) > 0) color = "#a8d5a2"; // Verde Claro
+        // Lógica de Colores solicitada
+        let color = "--v-oscuro"; 
+        if (esBucle) color = "--v-fosfor";
+        else if (a.from > a.to) color = "--v-claro"; // De mayor a menor (Ej: B -> A)
 
+        const colorHex = getComputedStyle(document.documentElement).getPropertyValue(color).trim();
         const markerId = `arrow-${index}`;
-        crearMarker(markerId, color);
+        crearMarker(markerId, colorHex);
 
         const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        g.onclick = () => { aristaSeleccionadaIdx = index; alert("Arista seleccionada: " + a.from + " -> " + a.to); };
+        
+        // Manejo de Selección de Arista
+        g.onclick = (e) => {
+            e.stopPropagation();
+            aristaSeleccionadaIdx = index;
+            if(nodoSeleccionado) {
+                nodoSeleccionado.el.classList.remove('selected');
+                nodoSeleccionado = null;
+            }
+            actualizarVista();
+        };
+
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("class", "arista-path" + (aristaSeleccionadaIdx === index ? " active" : ""));
+        
+        let d, tx, ty;
 
         if (esBucle) {
-            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            const d = `M ${n1.x-5} ${n1.y-25} A 15 15 0 1 1 ${n1.x+20} ${n1.y-20}`;
-            path.setAttribute("d", d);
-            path.setAttribute("stroke", color);
-            path.setAttribute("fill", "none");
-            path.setAttribute("stroke-width", "3");
-            path.setAttribute("marker-end", `url(#${markerId})`);
-            g.appendChild(path);
-            g.appendChild(crearTextoSVG(n1.x + 15, n1.y - 45, a.peso, color));
+            d = `M ${n1.x-5} ${n1.y-25} A 18 18 0 1 1 ${n1.x+22} ${n1.y-22}`;
+            tx = n1.x + 15; ty = n1.y - 48;
         } else {
             const dx = n2.x - n1.x, dy = n2.y - n1.y;
             const dist = Math.sqrt(dx*dx + dy*dy);
             const ux = dx/dist, uy = dy/dist;
 
-            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            let d, tx, ty;
-
-            if (existeInversa) {
-                // Curva
+            if (dobleSentido) {
                 const midX = (n1.x + n2.x) / 2, midY = (n1.y + n2.y) / 2;
-                const cpX = midX - uy * 30, cpY = midY + ux * 30;
-                d = `M ${n1.x + ux*25} ${n1.y + uy*25} Q ${cpX} ${cpY} ${n2.x - ux*30} ${n2.y - uy*30}`;
+                const curveFactor = 35;
+                const cpX = midX - uy * curveFactor, cpY = midY + ux * curveFactor;
+                d = `M ${n1.x + ux*28} ${n1.y + uy*28} Q ${cpX} ${cpY} ${n2.x - ux*32} ${n2.y - uy*32}`;
                 tx = cpX; ty = cpY;
             } else {
-                // Recta
-                d = `M ${n1.x + ux*25} ${n1.y + uy*25} L ${n2.x - ux*30} ${n2.y - uy*30}`;
+                d = `M ${n1.x + ux*28} ${n1.y + uy*28} L ${n2.x - ux*32} ${n2.y - uy*32}`;
                 tx = (n1.x + n2.x)/2 - uy*15; ty = (n1.y + n2.y)/2 + ux*15;
             }
-
-            path.setAttribute("d", d);
-            path.setAttribute("stroke", color);
-            path.setAttribute("fill", "none");
-            path.setAttribute("stroke-width", "3");
-            path.setAttribute("marker-end", `url(#${markerId})`);
-            g.appendChild(path);
-            g.appendChild(crearTextoSVG(tx, ty, a.peso, color));
         }
+
+        path.setAttribute("d", d);
+        path.setAttribute("stroke", aristaSeleccionadaIdx === index ? "#000" : colorHex);
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke-width", aristaSeleccionadaIdx === index ? "5" : "3");
+        path.setAttribute("marker-end", `url(#${markerId})`);
+        
+        g.appendChild(path);
+        g.appendChild(crearTextoSVG(tx, ty, a.peso, aristaSeleccionadaIdx === index ? "#000" : colorHex));
         svg.appendChild(g);
     });
 }
@@ -253,8 +270,8 @@ function crearMarker(id, color) {
     const m = document.createElementNS("http://www.w3.org/2000/svg", "marker");
     m.setAttribute("id", id); m.setAttribute("viewBox", "0 0 10 10");
     m.setAttribute("refX", "9"); m.setAttribute("refY", "5");
-    m.setAttribute("markerWidth", "6"); m.setAttribute("markerHeight", "6");
-    m.setAttribute("orient", "auto-start-reverse");
+    m.setAttribute("markerWidth", "5"); m.setAttribute("markerHeight", "5");
+    m.setAttribute("orient", "auto");
     const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
     p.setAttribute("d", "M 0 0 L 10 5 L 0 10 z"); p.setAttribute("fill", color);
     m.appendChild(p);
@@ -269,50 +286,66 @@ function crearTextoSVG(x, y, txt, color) {
     return t;
 }
 
-// FUNCIONES DE GESTIÓN
+// --- LOGICA DE BOTONES MEJORADA ---
+
 function editarNodo() {
-    const viejo = document.getElementById('manageInput').value.trim();
-    const nuevo = prompt("Nuevo nombre para " + viejo);
-    if(!nuevo) return;
-    const n = nodos.find(nod => nod.nombre === viejo);
-    if(n) {
-        n.nombre = nuevo; n.el.textContent = nuevo;
+    if (!nodoSeleccionado) return alert("Primero haz clic en un nodo del lienzo");
+    const nuevo = prompt("Nuevo nombre para el nodo:", nodoSeleccionado.nombre);
+    if (nuevo && nuevo !== nodoSeleccionado.nombre) {
+        if (nodos.some(n => n.nombre === nuevo)) return alert("Ese nombre ya existe");
+        const viejoNombre = nodoSeleccionado.nombre;
+        nodoSeleccionado.nombre = nuevo;
+        nodoSeleccionado.el.textContent = nuevo;
+        // Actualizar aristas que usaban este nombre
         aristas.forEach(a => {
-            if(a.from === viejo) a.from = nuevo;
-            if(a.to === viejo) a.to = nuevo;
+            if(a.from === viejoNombre) a.from = nuevo;
+            if(a.to === viejoNombre) a.to = nuevo;
         });
         guardarDatos(); actualizarVista();
     }
 }
 
 function borrarNodo() {
-    const nombre = document.getElementById('manageInput').value.trim();
-    const idx = nodos.findIndex(n => n.nombre === nombre);
-    if(idx !== -1) {
-        nodos[idx].el.remove();
-        nodos.splice(idx, 1);
+    if (!nodoSeleccionado) return alert("Primero haz clic en un nodo del lienzo");
+    if (confirm(`¿Borrar nodo ${nodoSeleccionado.nombre} y sus conexiones?`)) {
+        const nombre = nodoSeleccionado.nombre;
+        nodoSeleccionado.el.remove();
+        nodos = nodos.filter(n => n !== nodoSeleccionado);
         aristas = aristas.filter(a => a.from !== nombre && a.to !== nombre);
+        nodoSeleccionado = null;
         guardarDatos(); actualizarVista();
     }
 }
 
 function editarArista() {
-    if(aristaSeleccionadaIdx === null) return alert("Haz clic en una arista primero");
-    const nuevo = prompt("Nuevo peso:");
-    if(nuevo !== null) {
-        aristas[aristaSeleccionadaIdx].peso = parseInt(nuevo);
+    if (aristaSeleccionadaIdx === null) return alert("Primero haz clic en una arista (la línea) en el lienzo");
+    const nuevo = prompt("Nuevo peso / atributo:", aristas[aristaSeleccionadaIdx].peso);
+    if (nuevo !== null) {
+        aristas[aristaSeleccionadaIdx].peso = parseInt(nuevo) || 0;
         guardarDatos(); actualizarVista();
     }
 }
 
 function eliminarAristaSeleccionada() {
-    if(aristaSeleccionadaIdx === null) return alert("Haz clic en una arista primero");
+    if (aristaSeleccionadaIdx === null) return alert("Primero haz clic en una arista (la línea) en el lienzo");
     aristas.splice(aristaSeleccionadaIdx, 1);
     aristaSeleccionadaIdx = null;
     guardarDatos(); actualizarVista();
 }
 
-function limpiarTodo() { localStorage.clear(); location.reload(); }
+function limpiarTodo() {
+    if(confirm("¿Estás seguro de borrar todo el diseño?")) {
+        localStorage.clear();
+        location.reload();
+    }
+}
+
+area.onclick = () => {
+    if(nodoSeleccionado) nodoSeleccionado.el.classList.remove('selected');
+    nodoSeleccionado = null;
+    aristaSeleccionadaIdx = null;
+    actualizarVista();
+};
 
 window.onload = cargarDatos;
 </script>
