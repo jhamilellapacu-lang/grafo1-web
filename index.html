@@ -84,8 +84,15 @@
         <p style="font-size: 0.7rem; color: #718096; margin-top: 5px;">Selecciona un nodo y luego otro para conectarlos.</p>
     </div>
 
+    <div id="editEdgeBox" class="step edit-box">
+        <h2>Editar Arista</h2>
+        <input type="number" id="editEdgeWeight" placeholder="Nuevo peso">
+        <button class="success" onclick="guardarPesoArista()">Guardar Peso</button>
+        <button class="danger" onclick="eliminarSeleccionado()">Eliminar Arista</button>
+    </div>
+
     <div id="masterEditBox" class="step edit-box">
-        <h2 id="editTitle">Editando...</h2>
+        <h2 id="editTitle">Editando Nodo</h2>
         <input type="text" id="editValue" placeholder="Nuevo valor">
         <button class="success" onclick="guardarCambios()">Aplicar Cambio</button>
         <button class="danger" onclick="eliminarSeleccionado()">Eliminar</button>
@@ -106,16 +113,32 @@
 <script>
 let nodos = [];
 let aristas = [];
-let seleccionado = { tipo: null, id: null, data: null }; // Tracker de selección
+let seleccionado = { tipo: null, id: null, data: null };
 let origenConexion = null;
 
 const area = document.getElementById('area');
 const svg = document.getElementById('svg');
 const editBox = document.getElementById('masterEditBox');
+const editEdgeBox = document.getElementById('editEdgeBox');
 const editInput = document.getElementById('editValue');
 const editTitle = document.getElementById('editTitle');
 
-// --- FUNCIONES DE CREACIÓN ---
+// --- 1️⃣ PERSISTENCIA ---
+function guardarEnLocalStorage() {
+    const data = {
+        nodos: nodos.map(n => ({ nombre: n.nombre, x: n.x, y: n.y })),
+        aristas: aristas
+    };
+    localStorage.setItem("grafo", JSON.stringify(data));
+}
+
+// --- 2️⃣ INICIO LIMPIO ---
+window.onload = () => {
+    localStorage.removeItem("grafo");
+    nodos = [];
+    aristas = [];
+    svg.innerHTML = '<defs id="defs"></defs>';
+};
 
 function agregarNodo() {
     const nombre = document.getElementById('nodeName').value.trim();
@@ -141,25 +164,22 @@ function agregarNodo() {
     area.appendChild(div);
     nodos.push(nodoObj);
     document.getElementById('nodeName').value = '';
+    actualizarVista();
 }
 
 function manejarClickNodo(nodo) {
     if (!origenConexion) {
-        // Primera pulsación: Seleccionar para mover/editar o iniciar conexión
         deseleccionarTodo();
         origenConexion = nodo;
         nodo.el.classList.add('selected');
         
-        // Mostrar panel de edición
         seleccionado = { tipo: 'nodo', id: nodo.nombre, data: nodo };
         editTitle.innerText = "Nodo: " + nodo.nombre;
         editInput.value = nodo.nombre;
         editBox.style.display = 'block';
     } else if (origenConexion === nodo) {
-        // Si vuelves a pulsar el mismo, deseleccionas
         deseleccionarTodo();
     } else {
-        // Conectar dos nodos
         const peso = parseInt(document.getElementById('edgeWeight').value) || 1;
         aristas.push({ from: origenConexion.nombre, to: nodo.nombre, peso: peso });
         deseleccionarTodo();
@@ -167,7 +187,17 @@ function manejarClickNodo(nodo) {
     }
 }
 
-// --- FUNCIONES DE EDICIÓN Y ELIMINACIÓN ---
+// --- 3️⃣ FUNCIONES DE EDICIÓN ---
+function guardarPesoArista() {
+    const nuevoPeso = parseInt(document.getElementById("editEdgeWeight").value);
+    if (isNaN(nuevoPeso)) return alert("Peso inválido");
+
+    if (seleccionado.tipo === "arista") {
+        aristas[seleccionado.id].peso = nuevoPeso;
+        deseleccionarTodo();
+        actualizarVista();
+    }
+}
 
 function guardarCambios() {
     const nuevoValor = editInput.value.trim();
@@ -175,23 +205,17 @@ function guardarCambios() {
 
     if (seleccionado.tipo === 'nodo') {
         const viejoNombre = seleccionado.id;
-        // Evitar duplicados
         if (nodos.some(n => n.nombre === nuevoValor && n.nombre !== viejoNombre)) return alert("Ese nombre ya existe");
         
         const nodo = seleccionado.data;
         nodo.nombre = nuevoValor;
         nodo.el.textContent = nuevoValor;
         
-        // Actualizar nombres en las aristas
         aristas.forEach(a => {
             if (a.from === viejoNombre) a.from = nuevoValor;
             if (a.to === viejoNombre) a.to = nuevoValor;
         });
-    } 
-    else if (seleccionado.tipo === 'arista') {
-        aristas[seleccionado.id].peso = parseInt(nuevoValor) || 0;
     }
-
     deseleccionarTodo();
     actualizarVista();
 }
@@ -206,7 +230,6 @@ function eliminarSeleccionado() {
     else if (seleccionado.tipo === 'arista') {
         aristas.splice(seleccionado.id, 1);
     }
-    
     deseleccionarTodo();
     actualizarVista();
 }
@@ -216,10 +239,9 @@ function deseleccionarTodo() {
     origenConexion = null;
     seleccionado = { tipo: null, id: null, data: null };
     editBox.style.display = 'none';
-    actualizarVista(); // Para quitar colores de selección de aristas
+    editEdgeBox.style.display = 'none';
+    actualizarVista();
 }
-
-// --- DIBUJO ---
 
 function actualizarVista() {
     const defs = document.getElementById('defs');
@@ -234,11 +256,10 @@ function actualizarVista() {
         const doble = aristas.some(other => other.from === a.to && other.to === a.from && n1 !== n2);
         const isSelected = seleccionado.tipo === 'arista' && seleccionado.id === index;
 
-        // Lógica de Colores
-        let color = "#2d5a27"; // Verde oscuro
-        if (esBucle) color = "#39ff14"; // Fosfor
-        else if (a.from > a.to) color = "#a8d5a2"; // Verde claro
-        if (isSelected) color = "#000000"; // Negro si está seleccionada
+        let color = "#2d5a27"; 
+        if (esBucle) color = "#39ff14"; 
+        else if (a.from > a.to) color = "#a8d5a2"; 
+        if (isSelected) color = "#000000"; 
 
         const markerId = `arrow-${index}`;
         crearMarker(markerId, color);
@@ -248,9 +269,10 @@ function actualizarVista() {
             e.stopPropagation();
             deseleccionarTodo();
             seleccionado = { tipo: 'arista', id: index, data: a };
-            editTitle.innerText = "Arista: " + a.from + " ⮕ " + a.to;
-            editInput.value = a.peso;
-            editBox.style.display = 'block';
+            
+            // UI Cambio solicitado
+            document.getElementById("editEdgeBox").style.display = "block";
+            document.getElementById("editEdgeWeight").value = a.peso;
             actualizarVista();
         };
 
@@ -285,6 +307,9 @@ function actualizarVista() {
         g.appendChild(crearTextoSVG(tx, ty, a.peso, color));
         svg.appendChild(g);
     });
+    
+    // Guardar automáticamente
+    guardarEnLocalStorage();
 }
 
 function crearMarker(id, color) {
@@ -309,9 +334,7 @@ function crearTextoSVG(x, y, txt, color) {
 
 function habilitarMovimiento(nodoObj) {
     let moviendo = false;
-    nodoObj.el.onmousedown = (e) => { 
-        if (e.button === 0) moviendo = true; 
-    };
+    nodoObj.el.onmousedown = (e) => { if (e.button === 0) moviendo = true; };
     document.onmousemove = (e) => {
         if (!moviendo) return;
         const rect = area.getBoundingClientRect();
@@ -326,18 +349,12 @@ function habilitarMovimiento(nodoObj) {
 
 function limpiarTodo() {
     if(confirm("¿Borrar todo definitivamente?")) {
-        localStorage.removeItem("grafoData");
+        localStorage.removeItem("grafo");
         location.reload(); 
     }
 }
 
-// Deseleccionar al hacer clic en el fondo blanco
 area.onclick = () => deseleccionarTodo();
-
-// Iniciar siempre vacío (No llamamos a cargarDatos)
-window.onload = () => {
-    localStorage.removeItem("grafoData"); // Forzamos limpieza al recargar
-};
 </script>
 </body>
 </html>
