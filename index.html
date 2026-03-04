@@ -1,199 +1,305 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Graph Designer</title>
-<style>
-body { margin:0; display:flex; height:100vh; font-family:Arial; }
-#sidebar { width:300px; padding:20px; background:#f4f4f4; }
-#area { flex:1; position:relative; background:white; }
-.nodo{
-  width:50px;height:50px;border-radius:50%;
-  background:#1b4079;color:white;
-  display:flex;align-items:center;justify-content:center;
-  position:absolute;transform:translate(-50%,-50%);
-  cursor:pointer;font-weight:bold;
-}
-svg{position:absolute;width:100%;height:100%;}
-button,input{width:100%;margin-top:10px;padding:8px;}
-</style>
+    <meta charset="UTF-8">
+    <title>Graph Designer - Pesos Claros</title>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1b4079;
+            --dark-green: #2d5a27;
+            --light-green: #a8d5a2;
+            --bg: #f8fafc;
+        }
+
+        body {
+            font-family: 'Comfortaa', cursive;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background-color: var(--bg);
+        }
+
+        #sidebar {
+            width: 320px;
+            background: white;
+            padding: 20px;
+            box-shadow: 2px 0 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .step { padding: 12px; border: 2px solid #edf2f7; border-radius: 12px; }
+        h2 { font-size: 1rem; color: var(--primary); margin-top: 0; }
+        
+        input, button {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e0;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; }
+        button.secondary { background: #718096; }
+        button.danger { background: #e53e3e; }
+
+        #canvas-container { flex-grow: 1; padding: 20px; display: flex; justify-content: center; align-items: center; }
+        #area {
+            width: 100%; height: 100%;
+            background: white; border-radius: 30px;
+            position: relative; box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+            border: 2px dashed #cbd5e0; overflow: hidden;
+        }
+
+        .nodo {
+            width: 50px; height: 50px; border-radius: 50%;
+            background: var(--primary); color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; position: absolute;
+            transform: translate(-50%, -50%); cursor: pointer;
+            z-index: 10; border: 3px solid white; user-select: none;
+        }
+
+        .nodo.selected { background: #ff9800 !important; box-shadow: 0 0 15px rgba(255, 152, 0, 0.6); }
+
+        svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .label-peso { 
+            font-weight: bold; 
+            paint-order: stroke; 
+            stroke: white; 
+            stroke-width: 5px; 
+            font-size: 14px; 
+        }
+    </style>
 </head>
 <body>
 
 <div id="sidebar">
-<h2>Editor de Grafos</h2>
+    <h1 style="font-size: 1.3rem; color: var(--primary); margin: 0;">Diseña tu grafo</h1>
+    <div class="step">
+        <h2>1. Nombre del Nodo</h2>
+        <input type="text" id="nodeName" placeholder="Ej: A, 1, Madrid">
+        <button onclick="agregarNodo()">Añadir Nodo</button>
+    </div>
+    
+    <div class="step">
+        <h2>2. Peso Arista</h2>
+        <input type="number" id="edgeWeight" value="1">
+        <p style="font-size: 0.85rem; color: #4a5568;">Haz clic en origen y luego en destino.</p>
+    </div>
 
-<input id="nodeName" placeholder="Nombre nodo">
-<button onclick="agregarNodo()">Agregar Nodo</button>
-
-<input id="edgeWeight" type="number" value="1">
-<p>Haz clic en 2 nodos</p>
-
-<button onclick="limpiarTodo()">Limpiar</button>
-<button onclick="window.location.href='matriz.html'">Ver Matriz</button>
+    <div class="step">
+        <h2>Gestión</h2>
+        <input type="text" id="deleteNodeName" placeholder="Nombre de nodo">
+        <button class="secondary" onclick="borrarNodoPorNombre()">Borrar Nodo</button>
+        <button onclick="editarNodo()" style="margin-top:10px;">Editar Nodo</button>
+        <button class="danger" onclick="eliminarAristaSeleccionada()" style="margin-top:10px;">Eliminar Arista</button>
+        <button onclick="editarArista()" style="margin-top:10px;">Editar Arista</button>
+        <button class="danger" onclick="limpiarTodo()" style="margin-top: 10px;">Limpiar Lienzo</button>
+    </div>
+    <button onclick="window.location.href='matriz.html'">Ver Matriz</button>
 </div>
 
-<div id="area">
-<svg id="svg"></svg>
+<div id="canvas-container">
+    <div id="area">
+        <svg id="svg">
+            <defs>
+                <marker id="arrow-dark" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                    <path d="M0,0 L8,4 L0,8 Z" fill="#2d5a27"/>
+                </marker>
+                <marker id="arrow-light" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                    <path d="M0,0 L8,4 L0,8 Z" fill="#a8d5a2"/>
+                </marker>
+            </defs>
+        </svg>
+    </div>
 </div>
 
 <script>
-let nodos=[];
-let aristas=[];
-let nodoSeleccionado=null;
+let nodos = [];
+let aristas = [];
+let nodoSeleccionado = null;
+let aristaSeleccionada = null;
+const area = document.getElementById('area');
+const svg = document.getElementById('svg');
 
-const area=document.getElementById("area");
-const svg=document.getElementById("svg");
+function cargarDatos() {
+    const rawData = localStorage.getItem("grafoData");
+    if (!rawData) return;
+    const data = JSON.parse(rawData);
 
-/* =======================
-   GUARDAR / CARGAR
-======================= */
-function guardarDatos(){
-localStorage.setItem("grafoData",JSON.stringify({
-nodos:nodos.map(n=>({nombre:n.nombre,x:n.x,y:n.y})),
-aristas:aristas
-}));
+    nodos = [];
+    aristas = data.aristas || [];
+
+    data.nodos.forEach(n => {
+        const div = document.createElement('div');
+        div.className = 'nodo';
+        div.textContent = n.nombre;
+        div.style.left = n.x + 'px';
+        div.style.top = n.y + 'px';
+
+        const nodoObj = { nombre: n.nombre, x: n.x, y: n.y, el: div };
+        div.onclick = () => manejarClickNodo(nodoObj);
+        area.appendChild(div);
+        nodos.push(nodoObj);
+        habilitarMovimiento(nodoObj);
+    });
+
+    actualizarAristas();
 }
 
-function cargarDatos(){
-const data=JSON.parse(localStorage.getItem("grafoData"));
-if(!data) return;
+function agregarNodo() {
+    const nombre = document.getElementById('nodeName').value.trim();
+    if (!nombre || nodos.some(n => n.nombre === nombre)) return alert("Nombre inválido o duplicado");
+    
+    const x = 100 + Math.random() * (area.clientWidth - 200);
+    const y = 100 + Math.random() * (area.clientHeight - 200);
 
-nodos=[];
-aristas=data.aristas||[];
-svg.innerHTML="";
-
-data.nodos.forEach(n=>{
-const div=document.createElement("div");
-div.className="nodo";
-div.textContent=n.nombre;
-div.style.left=n.x+"px";
-div.style.top=n.y+"px";
-
-const obj={nombre:n.nombre,x:n.x,y:n.y,el:div};
-div.onclick=()=>clickNodo(obj);
-
-area.appendChild(div);
-nodos.push(obj);
-habilitarMovimiento(obj);
-});
-
-actualizarAristas();
+    const div = document.createElement('div');
+    div.className = 'nodo'; div.textContent = nombre;
+    div.style.left = x + 'px'; div.style.top = y + 'px';
+    
+    const nodoObj = { nombre, x, y, el: div };
+    div.onclick = () => manejarClickNodo(nodoObj);
+    area.appendChild(div);
+    nodos.push(nodoObj);
+    
+    habilitarMovimiento(nodoObj);
+    guardarDatos();
+    document.getElementById('nodeName').value = '';
 }
 
-/* =======================
-   NODOS
-======================= */
-function agregarNodo(){
-const nombre=document.getElementById("nodeName").value.trim();
-if(!nombre||nodos.some(n=>n.nombre===nombre))
-return alert("Nombre inválido");
-
-const x=Math.random()*(area.clientWidth-100)+50;
-const y=Math.random()*(area.clientHeight-100)+50;
-
-const div=document.createElement("div");
-div.className="nodo";
-div.textContent=nombre;
-div.style.left=x+"px";
-div.style.top=y+"px";
-
-const obj={nombre,x,y,el:div};
-div.onclick=()=>clickNodo(obj);
-
-area.appendChild(div);
-nodos.push(obj);
-habilitarMovimiento(obj);
-guardarDatos();
+function manejarClickNodo(nodo) {
+    if (!nodoSeleccionado) {
+        nodoSeleccionado = nodo;
+        nodo.el.classList.add('selected');
+    } else {
+        const peso = document.getElementById('edgeWeight').value || "1";
+        crearAristaVisual(nodoSeleccionado, nodo, peso, true);
+        nodoSeleccionado.el.classList.remove('selected');
+        nodoSeleccionado = null;
+    }
 }
 
-/* =======================
-   CLICK NODOS
-======================= */
-function clickNodo(nodo){
-if(!nodoSeleccionado){
-nodoSeleccionado=nodo;
-nodo.el.style.background="#ff9800";
-}else{
-const peso=parseInt(document.getElementById("edgeWeight").value||1);
-aristas.push({from:nodoSeleccionado.nombre,to:nodo.nombre,peso});
-nodoSeleccionado.el.style.background="#1b4079";
-nodoSeleccionado=null;
-actualizarAristas();
-guardarDatos();
-}
-}
-
-/* =======================
-   ARISTAS
-======================= */
-function actualizarAristas(){
-svg.innerHTML="";
-aristas.forEach(a=>{
-const n1=nodos.find(n=>n.nombre===a.from);
-const n2=nodos.find(n=>n.nombre===a.to);
-if(!n1||!n2) return;
-
-const line=document.createElementNS("http://www.w3.org/2000/svg","line");
-line.setAttribute("x1",n1.x);
-line.setAttribute("y1",n1.y);
-line.setAttribute("x2",n2.x);
-line.setAttribute("y2",n2.y);
-line.setAttribute("stroke","#2d5a27");
-line.setAttribute("stroke-width","2");
-
-const text=document.createElementNS("http://www.w3.org/2000/svg","text");
-text.setAttribute("x",(n1.x+n2.x)/2);
-text.setAttribute("y",(n1.y+n2.y)/2);
-text.setAttribute("text-anchor","middle");
-text.textContent=a.peso;
-
-svg.appendChild(line);
-svg.appendChild(text);
-});
+function habilitarMovimiento(nodoObj) {
+    let moviendo = false;
+    nodoObj.el.onmousedown = (e) => { moviendo = true; };
+    document.onmousemove = (e) => {
+        if (!moviendo) return;
+        const rect = area.getBoundingClientRect();
+        nodoObj.x = e.clientX - rect.left;
+        nodoObj.y = e.clientY - rect.top;
+        nodoObj.el.style.left = nodoObj.x + "px";
+        nodoObj.el.style.top = nodoObj.y + "px";
+        actualizarAristas();
+    };
+    document.onmouseup = () => {
+        if (moviendo) guardarDatos();
+        moviendo = false;
+    };
 }
 
-/* =======================
-   DRAG
-======================= */
-function habilitarMovimiento(nodo){
-let offsetX,offsetY,mov=false;
-
-nodo.el.addEventListener("mousedown",e=>{
-mov=true;
-offsetX=e.clientX-nodo.x;
-offsetY=e.clientY-nodo.y;
-});
-
-document.addEventListener("mousemove",e=>{
-if(!mov) return;
-nodo.x=e.clientX-offsetX;
-nodo.y=e.clientY-offsetY;
-nodo.el.style.left=nodo.x+"px";
-nodo.el.style.top=nodo.y+"px";
-actualizarAristas();
-});
-
-document.addEventListener("mouseup",()=>{
-if(mov) guardarDatos();
-mov=false;
-});
+function crearAristaVisual(n1, n2, peso, guardar = false) {
+    if (guardar) {
+        aristas.push({ from: n1.nombre, to: n2.nombre, peso: parseInt(peso) });
+        guardarDatos();
+    }
+    actualizarAristas();
 }
 
-/* =======================
-   LIMPIAR
-======================= */
-function limpiarTodo(){
-nodos.forEach(n=>n.el.remove());
-nodos=[];
-aristas=[];
-svg.innerHTML="";
-localStorage.removeItem("grafoData");
+function actualizarAristas() {
+    // Limpiar SVG menos los markers
+    const markers = svg.querySelector('defs');
+    svg.innerHTML = '';
+    svg.appendChild(markers);
+
+    aristas.forEach(a => {
+        const n1 = nodos.find(n => n.nombre === a.from);
+        const n2 = nodos.find(n => n.nombre === a.to);
+        if (!n1 || !n2) return;
+
+        const esBucle = n1 === n2;
+        const color = "#2d5a27";
+        const marker = "url(#arrow-dark)";
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
+        if (esBucle) {
+            const d = `M ${n1.x-10} ${n1.y-20} A 20 20 0 1 1 ${n1.x+10} ${n1.y-20}`;
+            g.appendChild(crearPath(d, color, marker));
+            g.appendChild(crearTextoSVG(n1.x, n1.y - 50, a.peso, color));
+        } else {
+            const dx = n2.x - n1.x, dy = n2.y - n1.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            const ux = dx/dist, uy = dy/dist;
+            const d = `M ${n1.x + ux*25} ${n1.y + uy*25} L ${n2.x - ux*30} ${n2.y - uy*30}`;
+            g.appendChild(crearPath(d, color, marker));
+            g.appendChild(crearTextoSVG((n1.x+n2.x)/2 - uy*15, (n1.y+n2.y)/2 + ux*15, a.peso, color));
+        }
+
+        g.style.cursor = "pointer";
+        g.onclick = () => {
+            if(aristaSeleccionada) aristaSeleccionada.firstChild.setAttribute("stroke-width", "2.5");
+            aristaSeleccionada = g;
+            g.firstChild.setAttribute("stroke-width", "5");
+        };
+        svg.appendChild(g);
+    });
 }
 
-window.onload=cargarDatos;
+function crearPath(d, color, marker) {
+    const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    p.setAttribute("d", d); p.setAttribute("stroke", color);
+    p.setAttribute("fill", "none"); p.setAttribute("stroke-width", "2.5");
+    p.setAttribute("marker-end", marker);
+    return p;
+}
+
+function crearTextoSVG(x, y, txt, color) {
+    const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    t.setAttribute("x", x); t.setAttribute("y", y);
+    t.setAttribute("fill", color); t.setAttribute("class", "label-peso");
+    t.setAttribute("text-anchor", "middle"); t.textContent = txt;
+    return t;
+}
+
+function borrarNodoPorNombre() {
+    const nombre = document.getElementById('deleteNodeName').value.trim();
+    nodos = nodos.filter(n => {
+        if(n.nombre === nombre) { n.el.remove(); return false; }
+        return true;
+    });
+    aristas = aristas.filter(a => a.from !== nombre && a.to !== nombre);
+    guardarDatos();
+    actualizarAristas();
+}
+
+function eliminarAristaSeleccionada() {
+    if (!aristaSeleccionada) return alert("Selecciona una arista (clic en la línea)");
+    const peso = aristaSeleccionada.querySelector("text").textContent;
+    aristas = aristas.filter(a => a.peso != peso);
+    aristaSeleccionada = null;
+    guardarDatos();
+    actualizarAristas();
+}
+
+function limpiarTodo() {
+    localStorage.clear();
+    location.reload();
+}
+
+function guardarDatos() {
+    localStorage.setItem("grafoData", JSON.stringify({
+        nodos: nodos.map(n => ({ nombre: n.nombre, x: n.x, y: n.y })),
+        aristas: aristas
+    }));
+}
+
+window.onload = cargarDatos;
 </script>
 </body>
 </html>
-
-
