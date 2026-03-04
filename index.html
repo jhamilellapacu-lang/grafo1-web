@@ -10,39 +10,41 @@
             --v-oscuro: #2d5a27;
             --v-claro: #a8d5a2;
             --v-fosfor: #39ff14;
-            --bg: #f8fafc;
+            --bg: #f0f4f8;
             --selected: #ff9800;
         }
 
         body { font-family: 'Comfortaa', cursive; margin: 0; display: flex; height: 100vh; background-color: var(--bg); overflow: hidden; }
 
+        /* Barra Lateral */
         #sidebar {
             width: 320px; background: white; padding: 20px;
-            box-shadow: 2px 0 15px rgba(0,0,0,0.1);
+            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
             display: flex; flex-direction: column; gap: 15px; z-index: 100;
-            overflow-y: auto;
         }
 
-        .step { padding: 12px; border: 2px solid #edf2f7; border-radius: 12px; background: #fff; }
-        .edit-panel { background: #fff3e0; border: 2px solid var(--selected); }
-        h2 { font-size: 0.9rem; color: var(--primary); margin: 0 0 8px 0; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .step { padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; background: #fff; }
+        .edit-box { background: #fff3e0; border: 2px solid var(--selected); display: none; }
+        
+        h2 { font-size: 0.9rem; color: var(--primary); margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 1px; }
         
         input, button {
-            width: 100%; padding: 10px; margin-top: 5px;
+            width: 100%; padding: 12px; margin-top: 8px;
             border-radius: 8px; border: 1px solid #cbd5e0;
-            box-sizing: border-box; font-family: inherit;
+            box-sizing: border-box; font-family: inherit; font-size: 0.9rem;
         }
 
-        button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        button:hover { filter: brightness(1.2); }
-        button.secondary { background: #718096; }
+        button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; transition: all 0.2s; }
+        button:hover { filter: brightness(1.1); transform: translateY(-1px); }
         button.danger { background: #e53e3e; }
+        button.success { background: var(--v-oscuro); }
 
-        #canvas-container { flex-grow: 1; padding: 20px; position: relative; }
+        /* Area de Dibujo */
+        #canvas-container { flex-grow: 1; padding: 25px; position: relative; }
         #area {
-            width: 100%; height: 100%; background: white; border-radius: 30px;
-            position: relative; box-shadow: inset 0 0 15px rgba(0,0,0,0.05);
-            border: 2px dashed #cbd5e0; overflow: hidden;
+            width: 100%; height: 100%; background: white; border-radius: 25px;
+            position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border: 2px solid #cbd5e0; overflow: hidden;
         }
 
         .nodo {
@@ -50,11 +52,11 @@
             background: var(--primary); color: white;
             display: flex; align-items: center; justify-content: center;
             font-weight: bold; position: absolute;
-            transform: translate(-50%, -50%); cursor: grab;
+            transform: translate(-50%, -50%); cursor: move;
             z-index: 10; border: 3px solid white; user-select: none;
         }
 
-        .nodo.selected { background: var(--selected) !important; box-shadow: 0 0 20px rgba(255, 152, 0, 0.5); }
+        .nodo.selected { background: var(--selected) !important; border-color: #fff; box-shadow: 0 0 15px var(--selected); }
 
         svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
         g { pointer-events: all; cursor: pointer; }
@@ -68,35 +70,31 @@
 <body>
 
 <div id="sidebar">
-    <h1 style="font-size: 1.3rem; color: var(--primary);">Grafo Designer</h1>
+    <h1 style="font-size: 1.4rem; color: var(--primary); margin: 0;">Editor Grafos</h1>
     
     <div class="step">
-        <h2>1. Crear Nodo</h2>
-        <input type="text" id="nodeName" placeholder="Nombre (Ej: A)">
-        <button onclick="agregarNodo()">Añadir Nodo</button>
+        <h2>➕ Nuevo Nodo</h2>
+        <input type="text" id="nodeName" placeholder="Nombre (Ej: A, B...)">
+        <button onclick="agregarNodo()">Crear Nodo</button>
     </div>
     
     <div class="step">
-        <h2>2. Nuevo Peso</h2>
+        <h2>⚙️ Peso Arista</h2>
         <input type="number" id="edgeWeight" value="1">
+        <p style="font-size: 0.7rem; color: #718096; margin-top: 5px;">Selecciona un nodo y luego otro para conectarlos.</p>
     </div>
 
-    <div id="editNodePanel" class="step edit-panel" style="display: none;">
-        <h2 style="color: #e67e22;">📝 Editar Nodo Seleccionado</h2>
-        <input type="text" id="editNodeInput">
-        <button onclick="aplicarCambioNodo()">Guardar Nombre</button>
-        <button class="danger" onclick="borrarNodo()">Eliminar Nodo</button>
+    <div id="masterEditBox" class="step edit-box">
+        <h2 id="editTitle">Editando...</h2>
+        <input type="text" id="editValue" placeholder="Nuevo valor">
+        <button class="success" onclick="guardarCambios()">Aplicar Cambio</button>
+        <button class="danger" onclick="eliminarSeleccionado()">Eliminar</button>
     </div>
 
-    <div id="editEdgePanel" class="step edit-panel" style="display: none;">
-        <h2 style="color: #e67e22;">📏 Editar Arista (Atributo)</h2>
-        <input type="number" id="editEdgeInput">
-        <button onclick="aplicarCambioArista()">Guardar Peso</button>
-        <button class="danger" onclick="eliminarAristaSeleccionada()">Eliminar Arista</button>
+    <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px;">
+        <button class="danger" onclick="limpiarTodo()">🗑️ Limpiar Todo el Lienzo</button>
+        <button onclick="window.location.href='matriz.html'">📊 Generar Matriz</button>
     </div>
-
-    <button class="danger" onclick="limpiarTodo()" style="margin-top: auto;">Limpiar Todo</button>
-    <button onclick="window.location.href='matriz.html'">Generar Matriz</button>
 </div>
 
 <div id="canvas-container">
@@ -108,105 +106,124 @@
 <script>
 let nodos = [];
 let aristas = [];
-let nodoSeleccionado = null;
-let aristaSeleccionadaIdx = null;
+let seleccionado = { tipo: null, id: null, data: null }; // Tracker de selección
+let origenConexion = null;
 
 const area = document.getElementById('area');
 const svg = document.getElementById('svg');
+const editBox = document.getElementById('masterEditBox');
+const editInput = document.getElementById('editValue');
+const editTitle = document.getElementById('editTitle');
 
-function guardarDatos() {
-    localStorage.setItem("grafoData", JSON.stringify({
-        nodos: nodos.map(n => ({ nombre: n.nombre, x: n.x, y: n.y })),
-        aristas: aristas
-    }));
-}
-
-function cargarDatos() {
-    const raw = localStorage.getItem("grafoData");
-    if (!raw) return;
-    const data = JSON.parse(raw);
-    data.nodos.forEach(n => crearElementoNodo(n.nombre, n.x, n.y));
-    aristas = data.aristas || [];
-    actualizarVista();
-}
+// --- FUNCIONES DE CREACIÓN ---
 
 function agregarNodo() {
     const nombre = document.getElementById('nodeName').value.trim();
-    if (!nombre || nodos.some(n => n.nombre === nombre)) return alert("Error en nombre");
-    crearElementoNodo(nombre, 100, 100);
-    guardarDatos();
-    document.getElementById('nodeName').value = '';
-}
+    if (!nombre || nodos.some(n => n.nombre === nombre)) return alert("Nombre no válido o ya existe");
+    
+    const x = 100 + Math.random() * (area.clientWidth - 200);
+    const y = 100 + Math.random() * (area.clientHeight - 200);
 
-function crearElementoNodo(nombre, x, y) {
     const div = document.createElement('div');
     div.className = 'nodo';
     div.textContent = nombre;
-    div.style.left = x + 'px'; div.style.top = y + 'px';
+    div.style.left = x + 'px';
+    div.style.top = y + 'px';
     
     const nodoObj = { nombre, x, y, el: div };
     
     div.onclick = (e) => {
         e.stopPropagation();
-        if (nodoSeleccionado && nodoSeleccionado !== nodoObj) {
-            // Crear conexión
-            const peso = parseInt(document.getElementById('edgeWeight').value) || 1;
-            aristas.push({ from: nodoSeleccionado.nombre, to: nodoObj.nombre, peso: peso });
-            deseleccionarTodo();
-        } else {
-            seleccionarNodo(nodoObj);
-        }
-        actualizarVista();
-        guardarDatos();
+        manejarClickNodo(nodoObj);
     };
     
     habilitarMovimiento(nodoObj);
     area.appendChild(div);
     nodos.push(nodoObj);
+    document.getElementById('nodeName').value = '';
 }
 
-function seleccionarNodo(nodo) {
-    deseleccionarTodo();
-    nodoSeleccionado = nodo;
-    nodo.el.classList.add('selected');
-    document.getElementById('editNodePanel').style.display = 'block';
-    document.getElementById('editNodeInput').value = nodo.nombre;
+function manejarClickNodo(nodo) {
+    if (!origenConexion) {
+        // Primera pulsación: Seleccionar para mover/editar o iniciar conexión
+        deseleccionarTodo();
+        origenConexion = nodo;
+        nodo.el.classList.add('selected');
+        
+        // Mostrar panel de edición
+        seleccionado = { tipo: 'nodo', id: nodo.nombre, data: nodo };
+        editTitle.innerText = "Nodo: " + nodo.nombre;
+        editInput.value = nodo.nombre;
+        editBox.style.display = 'block';
+    } else if (origenConexion === nodo) {
+        // Si vuelves a pulsar el mismo, deseleccionas
+        deseleccionarTodo();
+    } else {
+        // Conectar dos nodos
+        const peso = parseInt(document.getElementById('edgeWeight').value) || 1;
+        aristas.push({ from: origenConexion.nombre, to: nodo.nombre, peso: peso });
+        deseleccionarTodo();
+        actualizarVista();
+    }
 }
 
-function seleccionarArista(index) {
+// --- FUNCIONES DE EDICIÓN Y ELIMINACIÓN ---
+
+function guardarCambios() {
+    const nuevoValor = editInput.value.trim();
+    if (!nuevoValor) return;
+
+    if (seleccionado.tipo === 'nodo') {
+        const viejoNombre = seleccionado.id;
+        // Evitar duplicados
+        if (nodos.some(n => n.nombre === nuevoValor && n.nombre !== viejoNombre)) return alert("Ese nombre ya existe");
+        
+        const nodo = seleccionado.data;
+        nodo.nombre = nuevoValor;
+        nodo.el.textContent = nuevoValor;
+        
+        // Actualizar nombres en las aristas
+        aristas.forEach(a => {
+            if (a.from === viejoNombre) a.from = nuevoValor;
+            if (a.to === viejoNombre) a.to = nuevoValor;
+        });
+    } 
+    else if (seleccionado.tipo === 'arista') {
+        aristas[seleccionado.id].peso = parseInt(nuevoValor) || 0;
+    }
+
     deseleccionarTodo();
-    aristaSeleccionadaIdx = index;
-    document.getElementById('editEdgePanel').style.display = 'block';
-    document.getElementById('editEdgeInput').value = aristas[index].peso;
+    actualizarVista();
+}
+
+function eliminarSeleccionado() {
+    if (seleccionado.tipo === 'nodo') {
+        const nombre = seleccionado.id;
+        seleccionado.data.el.remove();
+        nodos = nodos.filter(n => n.nombre !== nombre);
+        aristas = aristas.filter(a => a.from !== nombre && a.to !== nombre);
+    } 
+    else if (seleccionado.tipo === 'arista') {
+        aristas.splice(seleccionado.id, 1);
+    }
+    
+    deseleccionarTodo();
     actualizarVista();
 }
 
 function deseleccionarTodo() {
-    if(nodoSeleccionado) nodoSeleccionado.el.classList.remove('selected');
-    nodoSeleccionado = null;
-    aristaSeleccionadaIdx = null;
-    document.getElementById('editNodePanel').style.display = 'none';
-    document.getElementById('editEdgePanel').style.display = 'none';
+    nodos.forEach(n => n.el.classList.remove('selected'));
+    origenConexion = null;
+    seleccionado = { tipo: null, id: null, data: null };
+    editBox.style.display = 'none';
+    actualizarVista(); // Para quitar colores de selección de aristas
 }
 
-function habilitarMovimiento(nodoObj) {
-    let moviendo = false;
-    nodoObj.el.onmousedown = () => { moviendo = true; };
-    document.onmousemove = (e) => {
-        if (!moviendo) return;
-        const rect = area.getBoundingClientRect();
-        nodoObj.x = e.clientX - rect.left;
-        nodoObj.y = e.clientY - rect.top;
-        nodoObj.el.style.left = nodoObj.x + "px";
-        nodoObj.el.style.top = nodoObj.y + "px";
-        actualizarVista();
-    };
-    document.onmouseup = () => { if(moviendo) guardarDatos(); moviendo = false; };
-}
+// --- DIBUJO ---
 
 function actualizarVista() {
     const defs = document.getElementById('defs');
-    svg.innerHTML = ''; svg.appendChild(defs); defs.innerHTML = '';
+    svg.innerHTML = ''; svg.appendChild(defs);
 
     aristas.forEach((a, index) => {
         const n1 = nodos.find(n => n.nombre === a.from);
@@ -215,18 +232,27 @@ function actualizarVista() {
 
         const esBucle = n1 === n2;
         const doble = aristas.some(other => other.from === a.to && other.to === a.from && n1 !== n2);
-        const isActive = aristaSeleccionadaIdx === index;
+        const isSelected = seleccionado.tipo === 'arista' && seleccionado.id === index;
 
+        // Lógica de Colores
         let color = "#2d5a27"; // Verde oscuro
         if (esBucle) color = "#39ff14"; // Fosfor
         else if (a.from > a.to) color = "#a8d5a2"; // Verde claro
-        if (isActive) color = "#000000"; // Negro si está seleccionada
+        if (isSelected) color = "#000000"; // Negro si está seleccionada
 
         const markerId = `arrow-${index}`;
         crearMarker(markerId, color);
 
         const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        g.onclick = (e) => { e.stopPropagation(); seleccionarArista(index); };
+        g.onclick = (e) => {
+            e.stopPropagation();
+            deseleccionarTodo();
+            seleccionado = { tipo: 'arista', id: index, data: a };
+            editTitle.innerText = "Arista: " + a.from + " ⮕ " + a.to;
+            editInput.value = a.peso;
+            editBox.style.display = 'block';
+            actualizarVista();
+        };
 
         const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
         let d, tx, ty;
@@ -252,7 +278,7 @@ function actualizarVista() {
         path.setAttribute("d", d);
         path.setAttribute("stroke", color);
         path.setAttribute("fill", "none");
-        path.setAttribute("stroke-width", isActive ? "5" : "3");
+        path.setAttribute("stroke-width", isSelected ? "5" : "3");
         path.setAttribute("marker-end", `url(#${markerId})`);
         
         g.appendChild(path);
@@ -281,45 +307,37 @@ function crearTextoSVG(x, y, txt, color) {
     return t;
 }
 
-// --- ACCIONES DEL PANEL ---
-
-function aplicarCambioNodo() {
-    const nuevo = document.getElementById('editNodeInput').value.trim();
-    if(!nuevo) return;
-    const viejo = nodoSeleccionado.nombre;
-    nodoSeleccionado.nombre = nuevo;
-    nodoSeleccionado.el.textContent = nuevo;
-    aristas.forEach(a => {
-        if(a.from === viejo) a.from = nuevo;
-        if(a.to === viejo) a.to = nuevo;
-    });
-    guardarDatos(); deseleccionarTodo(); actualizarVista();
+function habilitarMovimiento(nodoObj) {
+    let moviendo = false;
+    nodoObj.el.onmousedown = (e) => { 
+        if (e.button === 0) moviendo = true; 
+    };
+    document.onmousemove = (e) => {
+        if (!moviendo) return;
+        const rect = area.getBoundingClientRect();
+        nodoObj.x = e.clientX - rect.left;
+        nodoObj.y = e.clientY - rect.top;
+        nodoObj.el.style.left = nodoObj.x + "px";
+        nodoObj.el.style.top = nodoObj.y + "px";
+        actualizarVista();
+    };
+    document.onmouseup = () => { moviendo = false; };
 }
 
-function borrarNodo() {
-    const nombre = nodoSeleccionado.nombre;
-    nodoSeleccionado.el.remove();
-    nodos = nodos.filter(n => n !== nodoSeleccionado);
-    aristas = aristas.filter(a => a.from !== nombre && a.to !== nombre);
-    deseleccionarTodo(); guardarDatos(); actualizarVista();
+function limpiarTodo() {
+    if(confirm("¿Borrar todo definitivamente?")) {
+        localStorage.removeItem("grafoData");
+        location.reload(); 
+    }
 }
 
-function aplicarCambioArista() {
-    const nuevo = document.getElementById('editEdgeInput').value;
-    aristas[aristaSeleccionadaIdx].peso = parseInt(nuevo) || 0;
-    guardarDatos(); deseleccionarTodo(); actualizarVista();
-}
+// Deseleccionar al hacer clic en el fondo blanco
+area.onclick = () => deseleccionarTodo();
 
-function eliminarAristaSeleccionada() {
-    aristas.splice(aristaSeleccionadaIdx, 1);
-    deseleccionarTodo(); guardarDatos(); actualizarVista();
-}
-
-function limpiarTodo() { localStorage.clear(); location.reload(); }
-
-area.onclick = () => { deseleccionarTodo(); actualizarVista(); };
-
-window.onload = cargarDatos;
+// Iniciar siempre vacío (No llamamos a cargarDatos)
+window.onload = () => {
+    localStorage.removeItem("grafoData"); // Forzamos limpieza al recargar
+};
 </script>
 </body>
 </html>
