@@ -147,9 +147,6 @@ function generarMatrizPro() {
         return;
     }
 
-    const n = nodos.length;
-    // Crear matriz vacía de ceros
-    let matriz = Array.from({ length: n }, () => Array(n).fill(0));
 
     // Llenar matriz con pesos
     aristas.forEach(a => {
@@ -235,4 +232,5 @@ window.onload = generarMatrizPro;
 
 </body>
 </html>
+
 
