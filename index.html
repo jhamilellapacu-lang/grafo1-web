@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>Graph Designer - Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
             --primary: #1b4079;
@@ -19,23 +21,25 @@
         #sidebar {
             width: 320px; background: white; padding: 20px;
             box-shadow: 2px 0 15px rgba(0,0,0,0.1);
-            display: flex; flex-direction: column; gap: 15px; z-index: 100;
+            display: flex; flex-direction: column; gap: 12px; z-index: 100;
             overflow-y: auto;
         }
 
-        .step { padding: 12px; border: 2px solid #edf2f7; border-radius: 12px; background: #fff; }
+        .step { padding: 10px; border: 2px solid #edf2f7; border-radius: 12px; background: #fff; }
         .edit-panel { background: #fff3e0; border: 2px solid var(--selected); display: none; }
-        h2 { font-size: 0.9rem; color: var(--primary); margin: 0 0 8px 0; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        h2 { font-size: 0.85rem; color: var(--primary); margin: 0 0 8px 0; border-bottom: 1px solid #eee; }
         
         input, button {
-            width: 100%; padding: 10px; margin-top: 5px;
+            width: 100%; padding: 8px; margin-top: 5px;
             border-radius: 8px; border: 1px solid #cbd5e0;
-            box-sizing: border-box; font-family: inherit;
+            box-sizing: border-box; font-family: inherit; font-size: 0.9rem;
         }
 
         button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
         button:hover { filter: brightness(1.2); }
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
         button.danger { background: #e53e3e; }
+        button.secondary { background: #64748b; }
         button.success { background: #2d5a27; }
 
         #canvas-container { flex-grow: 1; padding: 20px; position: relative; }
@@ -53,22 +57,16 @@
             transform: translate(-50%, -50%); cursor: grab;
             z-index: 10; border: 3px solid white; user-select: none;
         }
-
         .nodo.selected { background: var(--selected) !important; box-shadow: 0 0 20px rgba(255, 152, 0, 0.5); }
-
         svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
         g { pointer-events: all; cursor: pointer; }
-        
-        .label-peso { 
-            font-weight: bold; paint-order: stroke; stroke: white; 
-            stroke-width: 4px; font-size: 14px;
-        }
+        .label-peso { font-weight: bold; paint-order: stroke; stroke: white; stroke-width: 4px; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div id="sidebar">
-    <h1 style="font-size: 1.3rem; color: var(--primary);">Grafo Designer</h1>
+    <h1 style="font-size: 1.2rem; color: var(--primary); margin: 0;">Grafo Designer Pro</h1>
     
     <div class="step">
         <h2>1. Crear Nodo</h2>
@@ -77,26 +75,39 @@
     </div>
     
     <div class="step">
-        <h2>2. Peso de Arista Nueva</h2>
+        <h2>2. Peso de Arista</h2>
         <input type="number" id="edgeWeight" value="1">
     </div>
 
     <div id="editNodePanel" class="step edit-panel">
         <h2 style="color: #e67e22;">📝 Editar Nodo</h2>
         <input type="text" id="editNodeInput">
-        <button class="success" onclick="aplicarCambioNodo()">Guardar Nombre</button>
-        <button class="danger" onclick="borrarNodo()">Eliminar Nodo</button>
+        <button class="success" onclick="aplicarCambioNodo()">Guardar</button>
+        <button class="danger" onclick="borrarNodo()">Eliminar</button>
     </div>
 
     <div id="editEdgePanel" class="step edit-panel">
         <h2 style="color: #e67e22;">📏 Editar Arista</h2>
         <input type="number" id="editEdgeInput">
-        <button class="success" onclick="aplicarCambioArista()">Guardar Peso</button>
-        <button class="danger" onclick="eliminarAristaSeleccionada()">Eliminar Arista</button>
+        <button class="success" onclick="aplicarCambioArista()">Guardar</button>
+        <button class="danger" onclick="eliminarAristaSeleccionada()">Eliminar</button>
     </div>
 
-    <button class="danger" onclick="limpiarTodo()" style="margin-top: auto;">🗑️ Limpiar Todo el Lienzo</button>
-    <button onclick="window.location.href='matriz.html'">📊 Generar Matriz</button>
+    <div class="step">
+        <h2>Gestión de Archivos</h2>
+        <div class="btn-group">
+            <button class="secondary" onclick="exportarGrafo()">Exportar</button>
+            <button class="secondary" onclick="document.getElementById('importInput').click()">Importar</button>
+        </div>
+        <input type="file" id="importInput" style="display:none" onchange="importarGrafo(event)">
+        <button class="success" style="margin-top:5px" onclick="descargarPDF()">Descargar PDF</button>
+    </div>
+
+    <div class="btn-group">
+        <button class="danger" onclick="limpiarTodo()">🗑️ Limpiar</button>
+        <button class="secondary" onclick="deshacerLimpieza()">↩️ Return</button>
+    </div>
+    <button onclick="window.location.href='matriz.html'" style="background: #7c3aed;">📊 Ver Matriz</button>
 </div>
 
 <div id="canvas-container">
@@ -110,36 +121,50 @@ let nodos = [];
 let aristas = [];
 let nodoSeleccionado = null;
 let aristaSeleccionadaIdx = null;
+let ultimoRespaldo = null;
 
 const area = document.getElementById('area');
 const svg = document.getElementById('svg');
-
-// 1. LIMPIEZA TOTAL AL ENTRAR
-window.onload = () => {
-    localStorage.removeItem("grafo");
-    nodos = [];
-    aristas = [];
-    actualizarVista();
-};
 
 function guardarEnLocalStorage() {
     const data = {
         nodos: nodos.map(n => ({ nombre: n.nombre, x: n.x, y: n.y })),
         aristas: aristas
     };
-    localStorage.setItem("grafo", JSON.stringify(data));
+    // CLAVE CORREGIDA PARA COINCIDIR CON LA MATRIZ
+    localStorage.setItem("grafoData", JSON.stringify(data));
+}
+
+function cargarDesdeLocalStorage() {
+    const raw = localStorage.getItem("grafoData");
+    if (raw) {
+        const data = JSON.parse(raw);
+        data.nodos.forEach(n => recrearNodo(n.nombre, n.x, n.y));
+        aristas = data.aristas;
+        actualizarVista();
+    }
 }
 
 function agregarNodo() {
     const nombre = document.getElementById('nodeName').value.trim();
-    if (!nombre || nodos.some(n => n.nombre === nombre)) return alert("Error en nombre");
+    if (!nombre || nodos.some(n => n.nombre === nombre)) return alert("Nombre inválido o duplicado");
     
+    // Posición aleatoria para evitar solapamiento inicial
+    const x = 50 + Math.random() * (area.clientWidth - 100);
+    const y = 50 + Math.random() * (area.clientHeight - 100);
+    
+    recrearNodo(nombre, x, y);
+    document.getElementById('nodeName').value = '';
+    actualizarVista();
+}
+
+function recrearNodo(nombre, x, y) {
     const div = document.createElement('div');
     div.className = 'nodo';
     div.textContent = nombre;
-    div.style.left = '100px'; div.style.top = '100px';
+    div.style.left = x + 'px'; div.style.top = y + 'px';
     
-    const nodoObj = { nombre, x: 100, y: 100, el: div };
+    const nodoObj = { nombre, x, y, el: div };
     
     div.onclick = (e) => {
         e.stopPropagation();
@@ -163,8 +188,6 @@ function agregarNodo() {
     habilitarMovimiento(nodoObj);
     area.appendChild(div);
     nodos.push(nodoObj);
-    document.getElementById('nodeName').value = '';
-    actualizarVista();
 }
 
 function seleccionarNodo(nodo) {
@@ -184,26 +207,20 @@ function deseleccionarTodo() {
     actualizarVista();
 }
 
-// 2. FUNCIONES DE LOS NUEVOS RECUADROS
 function aplicarCambioNodo() {
     if (!nodoSeleccionado) return;
     const nuevo = document.getElementById('editNodeInput').value.trim();
-    if (!nuevo) return;
-    
     const viejo = nodoSeleccionado.nombre;
     nodoSeleccionado.nombre = nuevo;
     nodoSeleccionado.el.textContent = nuevo;
-    
     aristas.forEach(a => {
         if (a.from === viejo) a.from = nuevo;
         if (a.to === viejo) a.to = nuevo;
     });
-    
     deseleccionarTodo();
 }
 
 function borrarNodo() {
-    if (!nodoSeleccionado) return;
     const nombre = nodoSeleccionado.nombre;
     nodoSeleccionado.el.remove();
     nodos = nodos.filter(n => n !== nodoSeleccionado);
@@ -212,14 +229,11 @@ function borrarNodo() {
 }
 
 function aplicarCambioArista() {
-    if (aristaSeleccionadaIdx === null) return;
-    const nuevo = parseInt(document.getElementById('editEdgeInput').value);
-    aristas[aristaSeleccionadaIdx].peso = nuevo;
+    aristas[aristaSeleccionadaIdx].peso = parseInt(document.getElementById('editEdgeInput').value);
     deseleccionarTodo();
 }
 
 function eliminarAristaSeleccionada() {
-    if (aristaSeleccionadaIdx === null) return;
     aristas.splice(aristaSeleccionadaIdx, 1);
     deseleccionarTodo();
 }
@@ -240,8 +254,8 @@ function habilitarMovimiento(nodoObj) {
 }
 
 function actualizarVista() {
+    svg.innerHTML = '<defs id="defs"></defs>';
     const defs = document.getElementById('defs');
-    svg.innerHTML = ''; svg.appendChild(defs);
 
     aristas.forEach((a, index) => {
         const n1 = nodos.find(n => n.nombre === a.from);
@@ -252,7 +266,8 @@ function actualizarVista() {
         const esBucle = n1 === n2;
         const doble = aristas.some((other, i) => other.from === a.to && other.to === a.from && n1 !== n2 && i !== index);
 
-        let color = isSelected ? "#000" : (esBucle ? "#39ff14" : (a.from > a.to ? "#a8d5a2" : "#2d5a27"));
+        // Color consistente
+        let color = isSelected ? "#ff9800" : (esBucle ? "#39ff14" : (a.from > a.to ? "#a8d5a2" : "#2d5a27"));
 
         const markerId = `arrow-${index}`;
         crearMarker(markerId, color);
@@ -305,7 +320,7 @@ function crearMarker(id, color) {
     const m = document.createElementNS("http://www.w3.org/2000/svg", "marker");
     m.setAttribute("id", id); m.setAttribute("viewBox", "0 0 10 10");
     m.setAttribute("refX", "9"); m.setAttribute("refY", "5");
-    m.setAttribute("markerWidth", "5"); m.setAttribute("markerHeight", "5");
+    m.setAttribute("markerWidth", "6"); m.setAttribute("markerHeight", "6");
     m.setAttribute("orient", "auto");
     const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
     p.setAttribute("d", "M 0 0 L 10 5 L 0 10 z"); p.setAttribute("fill", color);
@@ -321,11 +336,50 @@ function crearTextoSVG(x, y, txt, color) {
     return t;
 }
 
+// NUEVAS FUNCIONES DE IMPORT/EXPORT Y PDF
 function limpiarTodo() {
-    localStorage.removeItem("grafo");
-    location.reload();
+    ultimoRespaldo = localStorage.getItem("grafoData");
+    nodos.forEach(n => n.el.remove());
+    nodos = []; aristas = [];
+    actualizarVista();
 }
 
+function deshacerLimpieza() {
+    if (ultimoRespaldo) {
+        localStorage.setItem("grafoData", ultimoRespaldo);
+        location.reload();
+    } else { alert("No hay nada que recuperar"); }
+}
+
+function exportarGrafo() {
+    const data = localStorage.getItem("grafoData");
+    const blob = new Blob([data], {type: "application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = "grafo.json"; a.click();
+}
+
+function importarGrafo(e) {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        localStorage.setItem("grafoData", ev.target.result);
+        location.reload();
+    };
+    reader.readAsText(file);
+}
+
+async function descargarPDF() {
+    const { jsPDF } = window.jspdf;
+    const canvas = await html2canvas(document.getElementById('area'));
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('l', 'mm', 'a4');
+    pdf.text("Reporte de Grafo", 10, 10);
+    pdf.addImage(imgData, 'PNG', 10, 20, 260, 150);
+    pdf.save("mi-grafo.pdf");
+}
+
+window.onload = cargarDesdeLocalStorage;
 area.onclick = () => deseleccionarTodo();
 </script>
 </body>
