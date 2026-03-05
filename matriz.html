@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>Matriz de Adyacencia Pro - Pesos Claros</title>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
             --primary: #1b4079;
@@ -37,16 +39,21 @@
 
         h1 { color: var(--primary); font-weight: 700; margin: 0; }
 
-        .btn-back {
+        .btn-group { display: flex; gap: 10px; }
+
+        .btn {
             padding: 10px 20px;
-            background: var(--primary);
-            color: white;
-            border: none;
             border-radius: 10px;
             cursor: pointer;
             text-decoration: none;
             font-weight: bold;
+            border: none;
+            transition: 0.3s;
         }
+
+        .btn-back { background: var(--primary); color: white; }
+        .btn-pdf { background: #2d5a27; color: white; }
+        .btn:hover { filter: brightness(1.2); }
 
         table {
             border-collapse: separate;
@@ -102,11 +109,13 @@
 </head>
 <body>
 
-<div class="container">
+<div class="container" id="reporte">
     <div class="header-flex">
         <h1>Matriz de Adyacencia</h1>
-        <a href="index.html" class="btn-back">← Volver al Editor</a>
-        <button onclick="descargarPDFMatriz()" class="btn btn-pdf">Descargar PDF</button>
+        <div class="btn-group">
+            <a href="index.html" class="btn btn-back">← Volver al Editor</a>
+            <button onclick="descargarPDFMatriz()" class="btn btn-pdf">Descargar PDF</button>
+        </div>
     </div>
     
     <div id="matriz-render"></div>
@@ -135,7 +144,6 @@
 let lastDataHash = "";
 
 function generarMatrizPro() {
-    // 1. CLAVE SINCRONIZADA: Debe ser "grafoData" igual que en el index.html
     const rawData = localStorage.getItem("grafoData");
     
     if (!rawData) {
@@ -143,7 +151,6 @@ function generarMatrizPro() {
         return;
     }
 
-    // Evitar renderizado innecesario si los datos no han cambiado
     if (rawData === lastDataHash) return;
     lastDataHash = rawData;
 
@@ -157,20 +164,19 @@ function generarMatrizPro() {
         return;
     }
 
-    // Crear matriz inicializada en 0
     let matriz = Array.from({ length: n }, () => Array(n).fill(0));
     
-    // Llenar matriz con los pesos de las aristas
+    // Llenar matriz con RESTRICCIÓN DE NEGATIVOS
     aristas.forEach(a => {
         const i = nodos.indexOf(a.from);
         const j = nodos.indexOf(a.to);
         if (i !== -1 && j !== -1) {
-            // Si hay múltiples aristas entre los mismos nodos, las sumamos o tomamos la última
-            matriz[i][j] = parseInt(a.peso);
+            // Aplicamos la restricción: mínimo 0
+            const pesoSeguro = Math.max(0, parseInt(a.peso) || 0);
+            matriz[i][j] = pesoSeguro;
         }
     });
 
-    // Cálculos de Sumas y Cantidades
     let sumF = matriz.map(row => row.reduce((a, b) => a + b, 0));
     let contF = matriz.map(row => row.filter(x => x !== 0).length);
     let sumC = Array(n).fill(0), contC = Array(n).fill(0);
@@ -185,7 +191,6 @@ function generarMatrizPro() {
     const maxSF = Math.max(...sumF), maxSC = Math.max(...sumC);
     const maxCF = Math.max(...contF), maxCC = Math.max(...contC);
 
-    // Renderizado de la tabla
     let html = `<table><tr><th>NODOS</th>`;
     nodos.forEach(nod => html += `<th>${nod}</th>`);
     html += `<th class="calc-cell">SUMA Σ</th><th class="calc-cell">CANT #</th></tr>`;
@@ -199,52 +204,39 @@ function generarMatrizPro() {
         html += `<td class="calc-cell ${contF[i]===maxCF && maxCF>0 ? 'is-max' : ''}">${contF[i]}</td></tr>`;
     }
 
-    // Fila de Sumas (Columnas)
     html += `<tr><th class="calc-cell">SUMA Σ</th>`;
     sumC.forEach(s => html += `<td class="calc-cell ${s===maxSC && maxSC>0 ? 'is-max' : ''}">${s}</td>`);
     html += `<td colspan="2" style="background:transparent; border:none;"></td></tr>`;
 
-    // Fila de Cantidades (Columnas)
     html += `<tr><th class="calc-cell">CANT #</th>`;
     contC.forEach(c => html += `<td class="calc-cell ${c===maxCC && maxCC>0 ? 'is-max' : ''}">${c}</td>`);
     html += `<td colspan="2" style="background:transparent; border:none;"></td></tr></table>`;
 
     document.getElementById("matriz-render").innerHTML = html;
     
-    // Actualizar tarjetas de estadísticas
     document.getElementById("max-sum-f").innerText = maxSF;
     document.getElementById("max-sum-c").innerText = maxSC;
     document.getElementById("max-cont-f").innerText = maxCF;
     document.getElementById("max-cont-c").innerText = maxCC;
 }
+
 async function descargarPDFMatriz() {
     const { jsPDF } = window.jspdf;
-    const canvas = await html2canvas(document.getElementById('reporte'));
+    const element = document.getElementById('reporte');
+    const canvas = await html2canvas(element, { scale: 2 });
+    const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('l', 'mm', 'a4');
-    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, 270, 0);
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
     pdf.save("matriz-reporte.pdf");
 }
-// Ejecutar al cargar
+
 window.onload = () => {
     generarMatrizPro();
-    // Llenar matriz con los pesos de las aristas
-    aristas.forEach(a => {
-    const i = nodos.indexOf(a.from);
-    const j = nodos.indexOf(a.to);
-    if (i !== -1 && j !== -1) {
-        // RESTRICCIÓN ACTIVA: 
-        // 1. Convertimos a número entero.
-        // 2. Si es menor a 0, Math.max elige el 0.
-        // 3. Si no es un número (NaN), ponemos 0.
-        const pesoSeguro = Math.max(0, parseInt(a.peso) || 0);
-        
-        matriz[i][j] = pesoSeguro;
-    }
-});
-    // Sincronización automática: Revisa cambios cada 1 segundo
     setInterval(generarMatrizPro, 1000);
 };
 </script>
 </body>
 </html>
-
