@@ -149,6 +149,7 @@
         <h2>Gestión de Archivos</h2>
         <div class="btn-group">
             <button class="secondary" onclick="exportarGrafo()">Exportar</button>
+            
             <button class="secondary" onclick="document.getElementById('importInput').click()">Importar</button>
         </div>
         <input type="file" id="importInput" style="display:none" onchange="importarGrafo(event)">
@@ -435,6 +436,27 @@ function importarGrafo(e) {
     reader.readAsText(file);
 }
 
+
+function exportarGrafo(){
+    const data = JSON.parse(localStorage.getItem("grafo")) || {nodos:[], aristas:[]};
+
+    // pedir nombre del archivo al usuario
+    let nombreArchivo = prompt("Ingrese el nombre del archivo:", "mi_grafo");
+
+    if(!nombreArchivo) return;
+
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], {type: "application/json"});
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = nombreArchivo + ".json";
+    a.click();
+
+    URL.revokeObjectURL(url);
+}
+
 async function descargarPDF() {
     const { jsPDF } = window.jspdf;
     const canvas = await html2canvas(document.getElementById('area'));
@@ -450,6 +472,7 @@ area.onclick = () => deseleccionarTodo();
 </script>
 </body>
 </html>
+
 
 
 
