@@ -106,6 +106,7 @@
     <div class="header-flex">
         <h1>Matriz de Adyacencia</h1>
         <a href="index.html" class="btn-back">← Volver al Editor</a>
+        <button onclick="descargarPDFMatriz()" class="btn btn-pdf">Descargar PDF</button>
     </div>
     
     <div id="matriz-render"></div>
@@ -216,13 +217,34 @@ function generarMatrizPro() {
     document.getElementById("max-cont-f").innerText = maxCF;
     document.getElementById("max-cont-c").innerText = maxCC;
 }
-
+async function descargarPDFMatriz() {
+    const { jsPDF } = window.jspdf;
+    const canvas = await html2canvas(document.getElementById('reporte'));
+    const pdf = new jsPDF('l', 'mm', 'a4');
+    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, 270, 0);
+    pdf.save("matriz-reporte.pdf");
+}
 // Ejecutar al cargar
 window.onload = () => {
     generarMatrizPro();
+    // Llenar matriz con los pesos de las aristas
+    aristas.forEach(a => {
+    const i = nodos.indexOf(a.from);
+    const j = nodos.indexOf(a.to);
+    if (i !== -1 && j !== -1) {
+        // RESTRICCIÓN ACTIVA: 
+        // 1. Convertimos a número entero.
+        // 2. Si es menor a 0, Math.max elige el 0.
+        // 3. Si no es un número (NaN), ponemos 0.
+        const pesoSeguro = Math.max(0, parseInt(a.peso) || 0);
+        
+        matriz[i][j] = pesoSeguro;
+    }
+});
     // Sincronización automática: Revisa cambios cada 1 segundo
     setInterval(generarMatrizPro, 1000);
 };
 </script>
 </body>
 </html>
+
