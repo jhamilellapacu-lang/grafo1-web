@@ -419,11 +419,22 @@ function deshacerLimpieza() {
 }
 
 function exportarGrafo() {
+
     const data = localStorage.getItem("grafoData");
+
+    let nombreArchivo = prompt("Escribe el nombre del archivo:", "mi_grafo");
+
+    if(!nombreArchivo) return;
+
     const blob = new Blob([data], {type: "application/json"});
     const url = URL.createObjectURL(blob);
+
     const a = document.createElement('a');
-    a.href = url; a.download = "grafo.json"; a.click();
+    a.href = url;
+    a.download = nombreArchivo + ".json";
+    a.click();
+
+    URL.revokeObjectURL(url);
 }
 
 function importarGrafo(e) {
@@ -453,6 +464,7 @@ area.onclick = () => deseleccionarTodo();
 </script>
 </body>
 </html>
+
 
 
 
