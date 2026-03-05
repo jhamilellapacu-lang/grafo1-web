@@ -80,6 +80,9 @@
 <div id="sidebar">
     <h1 style="font-size: 1.2rem; color: var(--primary); margin: 0;">Diseña tu grafo</h1>
     <div id="manual">
+    .aviso-negativo { font-size: 11px; color: #ff0000; font-weight: bold; margin-top: 2px; display: block; }
+    <div id="manual">
+    <strong style="font-size: 1rem; color: var(--primary); display: block; margin-bottom: 10px;">🚀 Guía Maestra para Genios</strong>
     <strong style="font-size: 1rem; color: var(--primary); display: block; margin-bottom: 10px;">🚀 Guía Maestra para Genios</strong>
     
     <div class="manual-section">
@@ -94,7 +97,7 @@
             Pon el número del peso y haz <b>Doble Clic</b> rápido sobre el mismo nodo.</p>
 
         <p><b>✍️ Paso 4: Editar y Borrar</b><br>
-            Haz un clic sobre un <b>Nodo</b> o sobre el <b>Número</b> de una línea. Se abrirá un panel naranja donde podrás cambiar el nombre, el peso o borrarlos para siempre.</p>
+            Haz un clic sobre un <b>Nodo, arista, bucle</b> o sobre el <b>Número</b> de una línea. Se abrirá un panel naranja donde podrás cambiar el nombre, el peso o borrarlos para siempre.</p>
 
         <p><b>🖱️ Paso 5: Mover (Drag & Drop)</b><br>
             Mantén pulsado el ratón sobre un nodo y arrástralo a donde quieras. ¡Las líneas te seguirán!</p>
@@ -105,6 +108,42 @@
             • <b>Return (↩️):</b> Si borraste todo por error con el botón rojo, este botón "mágico" recupera tu último trabajo.<br>
             • <b>Ver Matriz:</b> Te lleva a una tabla donde verás todos los cálculos y sumas de tu grafo.</p>
     </div>
+    /* --- PEGA AQUÍ EL NUEVO CÓDIGO DEL MANUAL --- */
+
+    #manual {
+        background: #eef2ff;
+        border-left: 5px solid #4f46e5;
+        padding: 15px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        line-height: 1.4;
+        max-height: 400px;
+        overflow-y: auto;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        margin-bottom: 15px;
+    }
+
+    .manual-section p {
+        margin: 0 0 12px 0;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #e0e7ff;
+    }
+
+    .manual-section b {
+        color: #3730a3;
+    }
+
+    #sidebar h2 {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    #sidebar h2::before {
+        content: '📍';
+    }
+    
+
 </div>
     <div class="step">
         <h2>1. Crear Nodo</h2>
@@ -465,4 +504,5 @@ area.onclick = () => deseleccionarTodo();
 </script>
 </body>
 </html>
+
 
