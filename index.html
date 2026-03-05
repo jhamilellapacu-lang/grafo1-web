@@ -419,36 +419,50 @@ function deshacerLimpieza() {
 }
 
 function exportarGrafo() {
-
+    // 1. Verificamos si hay nodos para exportar
     if (nodos.length === 0) {
-        alert("No hay nada que exportar.");
+        alert("El grafo está vacío. Agrega algunos nodos antes de exportar.");
         return;
     }
 
-    // Crear objeto con los datos actuales
+    // 2. Pedimos el nombre al usuario con un prompt
+    let nombreArchivo = prompt("¿Con qué nombre quieres guardar el archivo?", "mi_grafo");
+
+    // 3. Si el usuario cancela (null), detenemos la función
+    if (nombreArchivo === null) return;
+
+    // 4. Si deja el nombre vacío, asignamos uno por defecto
+    if (nombreArchivo.trim() === "") {
+        nombreArchivo = "mi_grafo";
+    }
+
+    // 5. Preparamos los datos actuales directamente de los arreglos del programa
     const data = {
         nodos: nodos.map(n => ({ nombre: n.nombre, x: n.x, y: n.y })),
         aristas: aristas
     };
 
-    // Pedir nombre al usuario
-    let nombreArchivo = prompt("Escribe el nombre del archivo:", "mi_grafo");
+    // 6. Convertimos a JSON y creamos el proceso de descarga
+    try {
+        const json = JSON.stringify(data, null, 2);
+        const blob = new Blob([json], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
 
-    if (nombreArchivo === null) return;
-    if (nombreArchivo.trim() === "") nombreArchivo = "mi_grafo";
-
-    const json = JSON.stringify(data, null, 2);
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = nombreArchivo + ".json";
-    document.body.appendChild(a);
-    a.click();
-
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = nombreArchivo.trim() + ".json";
+        
+        // Añadir al documento, hacer click y remover (necesario en algunos navegadores)
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Liberar memoria
+        URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error("Error al exportar:", error);
+        alert("Hubo un error al generar el archivo.");
+    }
 }
 
 function importarGrafo(e) {
@@ -478,6 +492,7 @@ area.onclick = () => deseleccionarTodo();
 </script>
 </body>
 </html>
+
 
 
 
