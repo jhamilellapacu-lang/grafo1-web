@@ -420,12 +420,33 @@ function deshacerLimpieza() {
 
 function exportarGrafo() {
     const data = localStorage.getItem("grafoData");
+    if (!data || JSON.parse(data).nodos.length === 0) {
+        return alert("No hay datos para exportar");
+    }
+
+    // Ventana emergente para pedir el nombre
+    let nombreArchivo = prompt("Ingresa el nombre para tu archivo:", "mi-grafo");
+
+    // Si el usuario cancela o deja vacío, no hacemos nada
+    if (nombreArchivo === null) return; 
+    if (nombreArchivo.trim() === "") nombreArchivo = "mi-grafo";
+
+    // Asegurarnos de que tenga la extensión .json
+    if (!nombreArchivo.endsWith(".json")) {
+        nombreArchivo += ".json";
+    }
+
     const blob = new Blob([data], {type: "application/json"});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = "grafo.json"; a.click();
+    
+    a.href = url; 
+    a.download = nombreArchivo; // Usamos el nombre que dio el usuario
+    a.click();
+    
+    // Limpieza de memoria
+    URL.revokeObjectURL(url);
 }
-
 function importarGrafo(e) {
     const file = e.target.files[0];
     const reader = new FileReader();
@@ -453,6 +474,7 @@ area.onclick = () => deseleccionarTodo();
 </script>
 </body>
 </html>
+
 
 
 
