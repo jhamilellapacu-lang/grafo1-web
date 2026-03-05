@@ -57,6 +57,18 @@
             transform: translate(-50%, -50%); cursor: grab;
             z-index: 10; border: 3px solid white; user-select: none;
         }
+        .nodo:hover {
+            cursor: grab;
+    /* Mantenemos el translate para que no se mueva de su sitio al agrandarse */
+            transform: translate(-50%, -50%) scale(1.1); 
+            filter: brightness(1.1);
+        }
+ 
+        .nodo:active {
+             cursor: grabbing; 
+             transform: translate(-50%, -50%) scale(0.95); /* Se encoge un poquito al apretarlo, como un botón real */
+}
+
         .nodo.selected { background: var(--selected) !important; box-shadow: 0 0 20px rgba(255, 152, 0, 0.5); }
         svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
         g { pointer-events: all; cursor: pointer; }
@@ -66,17 +78,44 @@
 <body>
 
 <div id="sidebar">
-    <h1 style="font-size: 1.2rem; color: var(--primary); margin: 0;">Grafo Designer Pro</h1>
+    <h1 style="font-size: 1.2rem; color: var(--primary); margin: 0;">Diseña tu grafo</h1>
+    <div id="manual">
+    <strong style="font-size: 1rem; color: var(--primary); display: block; margin-bottom: 10px;">🚀 Guía Maestra para Genios</strong>
     
+    <div class="manual-section">
+        <p><b>🔵 Paso 1: Crear Nodos</b><br>Escribe un nombre (solo letras) y pulsa "Añadir Nodo". ¡Aparecerá en el tablero!</p>
+        
+        <p><b>📏 Paso 2: Unir con Aristas (Líneas)</b><br>
+            1. En la sección 2, escribe el número del <b>Peso</b> primero.<br>
+            2. Haz clic en el <b>Primer Nodo</b>.<br>
+            3. Haz clic en el <b>Segundo Nodo</b>. ¡Listo!</p>
+
+        <p><b>🔄 Paso 3: Crear un Bucle</b><br>
+            Pon el número del peso y haz <b>Doble Clic</b> rápido sobre el mismo nodo.</p>
+
+        <p><b>✍️ Paso 4: Editar y Borrar</b><br>
+            Haz un clic sobre un <b>Nodo</b> o sobre el <b>Número</b> de una línea. Se abrirá un panel naranja donde podrás cambiar el nombre, el peso o borrarlos para siempre.</p>
+
+        <p><b>🖱️ Paso 5: Mover (Drag & Drop)</b><br>
+            Mantén pulsado el ratón sobre un nodo y arrástralo a donde quieras. ¡Las líneas te seguirán!</p>
+
+        <p><b>💾 Paso 6: Archivos y Matriz</b><br>
+            • <b>Exportar:</b> Guarda tu dibujo en tu PC.<br>
+            • <b>Importar:</b> Sube un dibujo que guardaste antes.<br>
+            • <b>Return (↩️):</b> Si borraste todo por error con el botón rojo, este botón "mágico" recupera tu último trabajo.<br>
+            • <b>Ver Matriz:</b> Te lleva a una tabla donde verás todos los cálculos y sumas de tu grafo.</p>
+    </div>
+</div>
     <div class="step">
         <h2>1. Crear Nodo</h2>
-        <input type="text" id="nodeName" placeholder="Nombre (Ej: A)">
+        <input type="text" id="nodeName" placeholder="Nombre (Solo letras. Ej: A, LP)" oninput="this.value = this.value.replace(/[^a-zA-Z]/g, '')">
         <button onclick="agregarNodo()">Añadir Nodo</button>
     </div>
     
     <div class="step">
         <h2>2. Peso de Arista</h2>
-        <input type="number" id="edgeWeight" value="1">
+        <input type="number" id="edgeWeight" value="1" min="0" oninput="if(this.value<0)this.value=0">
+        <span class="aviso">* Solo números positivos</span>
     </div>
 
     <div id="editNodePanel" class="step edit-panel">
@@ -240,17 +279,59 @@ function eliminarAristaSeleccionada() {
 
 function habilitarMovimiento(nodoObj) {
     let moviendo = false;
-    nodoObj.el.onmousedown = () => { moviendo = true; };
-    document.onmousemove = (e) => {
-        if (!moviendo) return;
+    let difX = 0;
+    let difY = 0;
+
+    nodoObj.el.onmousedown = (e) => {
+        // Marcamos que estamos moviendo y calculamos la diferencia 
+        // para que el nodo no "salte" al centro del mouse
+        moviendo = true;
         const rect = area.getBoundingClientRect();
-        nodoObj.x = e.clientX - rect.left;
-        nodoObj.y = e.clientY - rect.top;
-        nodoObj.el.style.left = nodoObj.x + "px";
-        nodoObj.el.style.top = nodoObj.y + "px";
-        actualizarVista();
+        difX = e.clientX - rect.left - nodoObj.x;
+        difY = e.clientY - rect.top - nodoObj.y;
+        
+        // Estilo visual mientras arrastras
+        nodoObj.el.style.cursor = 'grabbing';
+        nodoObj.el.style.zIndex = "1000"; 
+        
+        // Evitamos que se seleccione texto por error
+        e.preventDefault();
     };
-    document.onmouseup = () => { moviendo = false; };
+
+    document.addEventListener('mousemove', (e) => {
+        if (!moviendo) return;
+
+        const rect = area.getBoundingClientRect();
+        
+        // Calculamos nueva posición
+        let nuevaX = e.clientX - rect.left - difX;
+        let nuevaY = e.clientY - rect.top - difY;
+
+        // Limites para que el nodo no se salga del cuadro blanco
+        const margen = 30;
+        if (nuevaX < margen) nuevaX = margen;
+        if (nuevaY < margen) nuevaY = margen;
+        if (nuevaX > rect.width - margen) nuevaX = rect.width - margen;
+        if (nuevaY > rect.height - margen) nuevaY = rect.height - margen;
+
+        // Actualizamos objeto y visual
+        nodoObj.x = nuevaX;
+        nodoObj.y = nuevaY;
+        nodoObj.el.style.left = nuevaX + "px";
+        nodoObj.el.style.top = nuevaY + "px";
+
+        // ¡IMPORTANTE! Actualizamos las flechas mientras te mueves
+        actualizarVista();
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (moviendo) {
+            moviendo = false;
+            nodoObj.el.style.cursor = 'grab';
+            nodoObj.el.style.zIndex = "10";
+            guardar(); // Guardamos la posición final
+        }
+    });
 }
 
 function actualizarVista() {
@@ -384,3 +465,4 @@ area.onclick = () => deseleccionarTodo();
 </script>
 </body>
 </html>
+
