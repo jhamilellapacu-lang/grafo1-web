@@ -25,10 +25,36 @@
             overflow-y: auto;
         }
 
+        /* --- ESTILOS DEL MANUAL --- */
+        #manual {
+            background: #eef2ff;
+            border-left: 5px solid #4f46e5;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+        }
+
+        .manual-section p {
+            margin: 0 0 10px 0;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #e0e7ff;
+        }
+
+        .manual-section b { color: #3730a3; }
+
+        /* --- ESTILOS DE ELEMENTOS --- */
         .step { padding: 10px; border: 2px solid #edf2f7; border-radius: 12px; background: #fff; }
         .edit-panel { background: #fff3e0; border: 2px solid var(--selected); display: none; }
-        h2 { font-size: 0.85rem; color: var(--primary); margin: 0 0 8px 0; border-bottom: 1px solid #eee; }
         
+        h2 { 
+            font-size: 0.85rem; color: var(--primary); margin: 0 0 8px 0; 
+            display: flex; align-items: center; gap: 8px;
+        }
+        h2::before { content: '📍'; }
+
         input, button {
             width: 100%; padding: 8px; margin-top: 5px;
             border-radius: 8px; border: 1px solid #cbd5e0;
@@ -41,6 +67,12 @@
         button.danger { background: #e53e3e; }
         button.secondary { background: #64748b; }
         button.success { background: #2d5a27; }
+
+        /* RESTRICCIÓN ROJA */
+        .aviso { 
+            font-size: 11px; color: #ff0000; font-weight: bold; 
+            display: block; margin-top: 4px; font-style: italic;
+        }
 
         #canvas-container { flex-grow: 1; padding: 20px; position: relative; }
         #area {
@@ -56,20 +88,12 @@
             font-weight: bold; position: absolute;
             transform: translate(-50%, -50%); cursor: grab;
             z-index: 10; border: 3px solid white; user-select: none;
+            transition: transform 0.2s;
         }
-        .nodo:hover {
-            cursor: grab;
-    /* Mantenemos el translate para que no se mueva de su sitio al agrandarse */
-            transform: translate(-50%, -50%) scale(1.1); 
-            filter: brightness(1.1);
-        }
- 
-        .nodo:active {
-             cursor: grabbing; 
-             transform: translate(-50%, -50%) scale(0.95); /* Se encoge un poquito al apretarlo, como un botón real */
-}
-
+        .nodo:hover { transform: translate(-50%, -50%) scale(1.1); filter: brightness(1.1); }
+        .nodo:active { cursor: grabbing; transform: translate(-50%, -50%) scale(0.95); }
         .nodo.selected { background: var(--selected) !important; box-shadow: 0 0 20px rgba(255, 152, 0, 0.5); }
+
         svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
         g { pointer-events: all; cursor: pointer; }
         .label-peso { font-weight: bold; paint-order: stroke; stroke: white; stroke-width: 4px; font-size: 14px; }
@@ -78,76 +102,23 @@
 <body>
 
 <div id="sidebar">
-    <h1 style="font-size: 1.2rem; color: var(--primary); margin: 0;">Diseña tu grafo</h1>
-    <div id="manual">
-    .aviso-negativo { font-size: 11px; color: #ff0000; font-weight: bold; margin-top: 2px; display: block; }
-    <div id="manual">
-    <strong style="font-size: 1rem; color: var(--primary); display: block; margin-bottom: 10px;">🚀 Guía Maestra para Genios</strong>
-    <strong style="font-size: 1rem; color: var(--primary); display: block; margin-bottom: 10px;">🚀 Guía Maestra para Genios</strong>
+    <h1 style="font-size: 1.2rem; color: var(--primary); margin: 0;">Graph Designer Pro</h1>
     
-    <div class="manual-section">
-        <p><b>🔵 Paso 1: Crear Nodos</b><br>Escribe un nombre (solo letras) y pulsa "Añadir Nodo". ¡Aparecerá en el tablero!</p>
-        
-        <p><b>📏 Paso 2: Unir con Aristas (Líneas)</b><br>
-            1. En la sección 2, escribe el número del <b>Peso</b> primero.<br>
-            2. Haz clic en el <b>Primer Nodo</b>.<br>
-            3. Haz clic en el <b>Segundo Nodo</b>. ¡Listo!</p>
-
-        <p><b>🔄 Paso 3: Crear un Bucle</b><br>
-            Pon el número del peso y haz <b>Doble Clic</b> rápido sobre el mismo nodo.</p>
-
-        <p><b>✍️ Paso 4: Editar y Borrar</b><br>
-            Haz un clic sobre un <b>Nodo, arista, bucle</b> o sobre el <b>Número</b> de una línea. Se abrirá un panel naranja donde podrás cambiar el nombre, el peso o borrarlos para siempre.</p>
-
-        <p><b>🖱️ Paso 5: Mover (Drag & Drop)</b><br>
-            Mantén pulsado el ratón sobre un nodo y arrástralo a donde quieras. ¡Las líneas te seguirán!</p>
-
-        <p><b>💾 Paso 6: Archivos y Matriz</b><br>
-            • <b>Exportar:</b> Guarda tu dibujo en tu PC.<br>
-            • <b>Importar:</b> Sube un dibujo que guardaste antes.<br>
-            • <b>Return (↩️):</b> Si borraste todo por error con el botón rojo, este botón "mágico" recupera tu último trabajo.<br>
-            • <b>Ver Matriz:</b> Te lleva a una tabla donde verás todos los cálculos y sumas de tu grafo.</p>
+    <div id="manual">
+        <strong style="font-size: 0.9rem; color: var(--primary); display: block; margin-bottom: 8px;">🚀 Guía Maestra</strong>
+        <div class="manual-section">
+            <p><b>🔵 Nodos:</b> Escribe nombre y pulsa "Añadir".</p>
+            <p><b>📏 Aristas:</b> Pon el <b>Peso</b> primero, luego toca Nodo A y después Nodo B.</p>
+            <p><b>🔄 Bucle:</b> Pon el peso y haz <b>Doble Clic</b> en el nodo.</p>
+            <p><b>✍️ Editar:</b> Toca un nodo o el número de una línea para editar o borrar.</p>
+            <p><b>🖱️ Mover:</b> Arrastra los círculos libremente.</p>
+            <p><b>💾 Return:</b> El botón mágico ↩️ recupera lo último borrado.</p>
+        </div>
     </div>
-    /* --- PEGA AQUÍ EL NUEVO CÓDIGO DEL MANUAL --- */
 
-    #manual {
-        background: #eef2ff;
-        border-left: 5px solid #4f46e5;
-        padding: 15px;
-        border-radius: 12px;
-        font-size: 0.8rem;
-        line-height: 1.4;
-        max-height: 400px;
-        overflow-y: auto;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        margin-bottom: 15px;
-    }
-
-    .manual-section p {
-        margin: 0 0 12px 0;
-        padding-bottom: 8px;
-        border-bottom: 1px solid #e0e7ff;
-    }
-
-    .manual-section b {
-        color: #3730a3;
-    }
-
-    #sidebar h2 {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    #sidebar h2::before {
-        content: '📍';
-    }
-    
-
-</div>
     <div class="step">
         <h2>1. Crear Nodo</h2>
-        <input type="text" id="nodeName" placeholder="Nombre (Solo letras. Ej: A, LP)" oninput="this.value = this.value.replace(/[^a-zA-Z]/g, '')">
+        <input type="text" id="nodeName" placeholder="Nombre (Ej: A, B)" oninput="this.value = this.value.replace(/[^a-zA-Z]/g, '')">
         <button onclick="agregarNodo()">Añadir Nodo</button>
     </div>
     
@@ -209,7 +180,6 @@ function guardarEnLocalStorage() {
         nodos: nodos.map(n => ({ nombre: n.nombre, x: n.x, y: n.y })),
         aristas: aristas
     };
-    // CLAVE CORREGIDA PARA COINCIDIR CON LA MATRIZ
     localStorage.setItem("grafoData", JSON.stringify(data));
 }
 
@@ -226,11 +196,8 @@ function cargarDesdeLocalStorage() {
 function agregarNodo() {
     const nombre = document.getElementById('nodeName').value.trim();
     if (!nombre || nodos.some(n => n.nombre === nombre)) return alert("Nombre inválido o duplicado");
-    
-    // Posición aleatoria para evitar solapamiento inicial
     const x = 50 + Math.random() * (area.clientWidth - 100);
     const y = 50 + Math.random() * (area.clientHeight - 100);
-    
     recrearNodo(nombre, x, y);
     document.getElementById('nodeName').value = '';
     actualizarVista();
@@ -241,13 +208,12 @@ function recrearNodo(nombre, x, y) {
     div.className = 'nodo';
     div.textContent = nombre;
     div.style.left = x + 'px'; div.style.top = y + 'px';
-    
     const nodoObj = { nombre, x, y, el: div };
     
     div.onclick = (e) => {
         e.stopPropagation();
         if (nodoSeleccionado && nodoSeleccionado !== nodoObj) {
-            const peso = parseInt(document.getElementById('edgeWeight').value) || 1;
+            const peso = Math.max(0, parseInt(document.getElementById('edgeWeight').value) || 1);
             aristas.push({ from: nodoSeleccionado.nombre, to: nodoObj.nombre, peso: peso });
             deseleccionarTodo();
         } else {
@@ -258,7 +224,7 @@ function recrearNodo(nombre, x, y) {
 
     div.ondblclick = (e) => {
         e.stopPropagation();
-        const peso = parseInt(document.getElementById('edgeWeight').value) || 1;
+        const peso = Math.max(0, parseInt(document.getElementById('edgeWeight').value) || 1);
         aristas.push({ from: nodoObj.nombre, to: nodoObj.nombre, peso: peso });
         actualizarVista();
     };
@@ -307,7 +273,8 @@ function borrarNodo() {
 }
 
 function aplicarCambioArista() {
-    aristas[aristaSeleccionadaIdx].peso = parseInt(document.getElementById('editEdgeInput').value);
+    const nuevoPeso = Math.max(0, parseInt(document.getElementById('editEdgeInput').value) || 0);
+    aristas[aristaSeleccionadaIdx].peso = nuevoPeso;
     deseleccionarTodo();
 }
 
@@ -318,65 +285,44 @@ function eliminarAristaSeleccionada() {
 
 function habilitarMovimiento(nodoObj) {
     let moviendo = false;
-    let difX = 0;
-    let difY = 0;
+    let difX = 0, difY = 0;
 
     nodoObj.el.onmousedown = (e) => {
-        // Marcamos que estamos moviendo y calculamos la diferencia 
-        // para que el nodo no "salte" al centro del mouse
         moviendo = true;
         const rect = area.getBoundingClientRect();
         difX = e.clientX - rect.left - nodoObj.x;
         difY = e.clientY - rect.top - nodoObj.y;
-        
-        // Estilo visual mientras arrastras
-        nodoObj.el.style.cursor = 'grabbing';
-        nodoObj.el.style.zIndex = "1000"; 
-        
-        // Evitamos que se seleccione texto por error
+        nodoObj.el.style.zIndex = "1000";
         e.preventDefault();
     };
 
     document.addEventListener('mousemove', (e) => {
         if (!moviendo) return;
-
         const rect = area.getBoundingClientRect();
+        let nx = e.clientX - rect.left - difX;
+        let ny = e.clientY - rect.top - difY;
         
-        // Calculamos nueva posición
-        let nuevaX = e.clientX - rect.left - difX;
-        let nuevaY = e.clientY - rect.top - difY;
+        // Limites
+        nx = Math.max(30, Math.min(nx, rect.width - 30));
+        ny = Math.max(30, Math.min(ny, rect.height - 30));
 
-        // Limites para que el nodo no se salga del cuadro blanco
-        const margen = 30;
-        if (nuevaX < margen) nuevaX = margen;
-        if (nuevaY < margen) nuevaY = margen;
-        if (nuevaX > rect.width - margen) nuevaX = rect.width - margen;
-        if (nuevaY > rect.height - margen) nuevaY = rect.height - margen;
-
-        // Actualizamos objeto y visual
-        nodoObj.x = nuevaX;
-        nodoObj.y = nuevaY;
-        nodoObj.el.style.left = nuevaX + "px";
-        nodoObj.el.style.top = nuevaY + "px";
-
-        // ¡IMPORTANTE! Actualizamos las flechas mientras te mueves
+        nodoObj.x = nx; nodoObj.y = ny;
+        nodoObj.el.style.left = nx + "px";
+        nodoObj.el.style.top = ny + "px";
         actualizarVista();
     });
 
     document.addEventListener('mouseup', () => {
         if (moviendo) {
             moviendo = false;
-            nodoObj.el.style.cursor = 'grab';
             nodoObj.el.style.zIndex = "10";
-            guardar(); // Guardamos la posición final
+            guardarEnLocalStorage();
         }
     });
 }
 
 function actualizarVista() {
     svg.innerHTML = '<defs id="defs"></defs>';
-    const defs = document.getElementById('defs');
-
     aristas.forEach((a, index) => {
         const n1 = nodos.find(n => n.nombre === a.from);
         const n2 = nodos.find(n => n.nombre === a.to);
@@ -385,8 +331,6 @@ function actualizarVista() {
         const isSelected = aristaSeleccionadaIdx === index;
         const esBucle = n1 === n2;
         const doble = aristas.some((other, i) => other.from === a.to && other.to === a.from && n1 !== n2 && i !== index);
-
-        // Color consistente
         let color = isSelected ? "#ff9800" : (esBucle ? "#39ff14" : (a.from > a.to ? "#a8d5a2" : "#2d5a27"));
 
         const markerId = `arrow-${index}`;
@@ -456,7 +400,6 @@ function crearTextoSVG(x, y, txt, color) {
     return t;
 }
 
-// NUEVAS FUNCIONES DE IMPORT/EXPORT Y PDF
 function limpiarTodo() {
     ultimoRespaldo = localStorage.getItem("grafoData");
     nodos.forEach(n => n.el.remove());
@@ -504,5 +447,3 @@ area.onclick = () => deseleccionarTodo();
 </script>
 </body>
 </html>
-
-
