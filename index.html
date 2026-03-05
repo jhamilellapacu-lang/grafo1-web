@@ -437,25 +437,6 @@ function importarGrafo(e) {
 }
 
 
-function exportarGrafo(){
-    const data = JSON.parse(localStorage.getItem("grafo")) || {nodos:[], aristas:[]};
-
-    // pedir nombre del archivo al usuario
-    let nombreArchivo = prompt("Ingrese el nombre del archivo:", "mi_grafo");
-
-    if(!nombreArchivo) return;
-
-    const json = JSON.stringify(data, null, 2);
-    const blob = new Blob([json], {type: "application/json"});
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = nombreArchivo + ".json";
-    a.click();
-
-    URL.revokeObjectURL(url);
-}
 
 async function descargarPDF() {
     const { jsPDF } = window.jspdf;
@@ -472,6 +453,7 @@ area.onclick = () => deseleccionarTodo();
 </script>
 </body>
 </html>
+
 
 
 
