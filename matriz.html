@@ -2,227 +2,89 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Matriz de Adyacencia Pro - Pesos Claros</title>
+    <title>Matriz de Adyacencia Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        :root {
-            --primary: #1b4079;
-            --secondary: #7c3aed;
-            --max-color: #f59e0b;
-            --bg: #f8fafc;
-        }
-
-        body {
-            font-family: 'Comfortaa', cursive;
-            background-color: var(--bg);
-            padding: 30px;
-            color: #1e293b;
-        }
-
-        .container {
-            background: white;
-            padding: 40px;
-            border-radius: 30px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.05);
-            max-width: 1100px;
-            margin: auto;
-        }
-
-        .header-flex {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        h1 { color: var(--primary); font-weight: 700; margin: 0; }
-
-        .btn-back {
-            padding: 10px 20px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        table {
-            border-collapse: separate;
-            border-spacing: 5px;
-            width: 100%;
-            margin-top: 20px;
-            overflow-x: auto;
-            display: block;
-        }
-
-        th, td {
-            min-width: 60px;
-            padding: 12px;
-            border-radius: 8px;
-            text-align: center;
-            border: 1px solid #e2e8f0;
-        }
-
+        :root { --primary: #1b4079; --bg: #f8fafc; }
+        body { font-family: 'Comfortaa', cursive; background: var(--bg); padding: 20px; }
+        .container { background: white; padding: 30px; border-radius: 20px; max-width: 1000px; margin: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: center; }
         th { background: var(--primary); color: white; }
-
-        .calc-cell {
-            background: #f1f5f9;
-            color: var(--secondary);
-            font-weight: 700;
-        }
-
-        .is-max {
-            background: var(--max-color) !important;
-            color: white !important;
-            transform: scale(1.05);
-            box-shadow: 0 4px 10px rgba(245, 158, 11, 0.4);
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 40px;
-        }
-
-        .stat-card {
-            padding: 20px;
-            border-radius: 20px;
-            background: #ffffff;
-            border-left: 5px solid var(--primary);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.03);
-            text-align: center;
-        }
-
-        .stat-label { font-size: 0.75em; color: #94a3b8; font-weight: 700; display: block; margin-bottom: 8px; }
-        .stat-value { font-size: 1.8em; font-weight: 700; color: var(--primary); }
+        .is-max { background: #f59e0b !important; color: white; font-weight: bold; }
+        .btn { padding: 10px 20px; border-radius: 10px; cursor: pointer; text-decoration: none; font-weight: bold; border: none; }
+        .btn-back { background: var(--primary); color: white; }
+        .btn-pdf { background: #2d5a27; color: white; margin-left: 10px; }
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 20px; }
+        .card { background: #f1f5f9; padding: 15px; border-radius: 10px; text-align: center; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header-flex">
-        <h1>Matriz de Adyacencia</h1>
-        <a href="index.html" class="btn-back">← Volver al Editor</a>
+<div class="container" id="reporte">
+    <div class="header">
+        <h1>📊 Matriz de Pesos</h1>
+        <div>
+            <a href="index.html" class="btn btn-back">← Volver</a>
+            <button onclick="descargarPDFMatriz()" class="btn btn-pdf">Descargar PDF</button>
+        </div>
     </div>
     
-    <div id="matriz-render"></div>
+    <div id="tabla-area"></div>
 
-    <div class="stats-grid">
-        <div class="stat-card">
-            <span class="stat-label">MAX. SUMA FILAS</span>
-            <span id="max-sum-f" class="stat-value">0</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-label">MAX. SUMA COLUMNAS</span>
-            <span id="max-sum-c" class="stat-value">0</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-label">MAX. CANT. FILAS</span>
-            <span id="max-cont-f" class="stat-value">0</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-label">MAX. CANT. COLUMNAS</span>
-            <span id="max-cont-c" class="stat-value">0</span>
-        </div>
+    <div class="stats">
+        <div class="card"><span>Max Suma Fila</span><h2 id="msf">0</h2></div>
+        <div class="card"><span>Max Suma Col</span><h2 id="msc">0</h2></div>
+        <div class="card"><span>Max Cant Fila</span><h2 id="mcf">0</h2></div>
+        <div class="card"><span>Max Cant Col</span><h2 id="mcc">0</h2></div>
     </div>
 </div>
 
 <script>
-let lastDataHash = "";
+function generar() {
+    const data = JSON.parse(localStorage.getItem("grafoData") || '{"nodos":[], "aristas":[]}');
+    const n = data.nodos.length;
+    if (n === 0) return document.getElementById("tabla-area").innerHTML = "Crea nodos primero.";
 
-function generarMatrizPro() {
-    // 1. CLAVE SINCRONIZADA: Debe ser "grafoData" igual que en el index.html
-    const rawData = localStorage.getItem("grafoData");
+    const nombres = data.nodos.map(nd => nd.nombre);
+    let matriz = Array.from({length: n}, () => Array(n).fill(0));
     
-    if (!rawData) {
-        document.getElementById("matriz-render").innerHTML = "<div style='text-align:center; padding:20px;'><h3>No hay datos disponibles.</h3><p>Crea nodos en el editor primero.</p></div>";
-        return;
-    }
-
-    // Evitar renderizado innecesario si los datos no han cambiado
-    if (rawData === lastDataHash) return;
-    lastDataHash = rawData;
-
-    const data = JSON.parse(rawData);
-    const nodos = data.nodos.map(n => n.nombre);
-    const aristas = data.aristas;
-    const n = nodos.length;
-
-    if (n === 0) {
-        document.getElementById("matriz-render").innerHTML = "<h3>El grafo está vacío.</h3>";
-        return;
-    }
-
-    // Crear matriz inicializada en 0
-    let matriz = Array.from({ length: n }, () => Array(n).fill(0));
-    
-    // Llenar matriz con los pesos de las aristas
-    aristas.forEach(a => {
-        const i = nodos.indexOf(a.from);
-        const j = nodos.indexOf(a.to);
-        if (i !== -1 && j !== -1) {
-            // Si hay múltiples aristas entre los mismos nodos, las sumamos o tomamos la última
-            matriz[i][j] = parseInt(a.peso);
-        }
+    // RESTRICCIÓN: Math.max(0, ...) para asegurar positivos
+    data.aristas.forEach(a => {
+        const i = nombres.indexOf(a.from), j = nombres.indexOf(a.to);
+        if (i!==-1 && j!==-1) matriz[i][j] = Math.max(0, parseInt(a.peso) || 0);
     });
 
-    // Cálculos de Sumas y Cantidades
-    let sumF = matriz.map(row => row.reduce((a, b) => a + b, 0));
-    let contF = matriz.map(row => row.filter(x => x !== 0).length);
+    let sumF = matriz.map(r => r.reduce((a,b)=>a+b,0));
+    let contF = matriz.map(r => r.filter(x=>x>0).length);
     let sumC = Array(n).fill(0), contC = Array(n).fill(0);
-    
-    for (let j = 0; j < n; j++) {
-        for (let i = 0; i < n; i++) {
-            sumC[j] += matriz[i][j];
-            if (matriz[i][j] !== 0) contC[j]++;
-        }
-    }
+    for(let j=0; j<n; j++) matriz.forEach((r,i) => { sumC[j]+=r[j]; if(r[j]>0) contC[j]++; });
 
-    const maxSF = Math.max(...sumF), maxSC = Math.max(...sumC);
-    const maxCF = Math.max(...contF), maxCC = Math.max(...contC);
+    let html = `<table><tr><th>ID</th>${nombres.map(nm=>`<th>${nm}</th>`).join('')}<th>SUMA</th></tr>`;
+    matriz.forEach((r, i) => {
+        html += `<tr><th>${nombres[i]}</th>${r.map(v=>`<td>${v}</td>`).join('')}<td>${sumF[i]}</td></tr>`;
+    });
+    html += `<tr><th>SUMA</th>${sumC.map(s=>`<td>${s}</td>`).join('')}<td>-</td></tr></table>`;
 
-    // Renderizado de la tabla
-    let html = `<table><tr><th>NODOS</th>`;
-    nodos.forEach(nod => html += `<th>${nod}</th>`);
-    html += `<th class="calc-cell">SUMA Σ</th><th class="calc-cell">CANT #</th></tr>`;
-
-    for (let i = 0; i < n; i++) {
-        html += `<tr><th>${nodos[i]}</th>`;
-        for (let j = 0; j < n; j++) {
-            html += `<td>${matriz[i][j]}</td>`;
-        }
-        html += `<td class="calc-cell ${sumF[i]===maxSF && maxSF>0 ? 'is-max' : ''}">${sumF[i]}</td>`;
-        html += `<td class="calc-cell ${contF[i]===maxCF && maxCF>0 ? 'is-max' : ''}">${contF[i]}</td></tr>`;
-    }
-
-    // Fila de Sumas (Columnas)
-    html += `<tr><th class="calc-cell">SUMA Σ</th>`;
-    sumC.forEach(s => html += `<td class="calc-cell ${s===maxSC && maxSC>0 ? 'is-max' : ''}">${s}</td>`);
-    html += `<td colspan="2" style="background:transparent; border:none;"></td></tr>`;
-
-    // Fila de Cantidades (Columnas)
-    html += `<tr><th class="calc-cell">CANT #</th>`;
-    contC.forEach(c => html += `<td class="calc-cell ${c===maxCC && maxCC>0 ? 'is-max' : ''}">${c}</td>`);
-    html += `<td colspan="2" style="background:transparent; border:none;"></td></tr></table>`;
-
-    document.getElementById("matriz-render").innerHTML = html;
-    
-    // Actualizar tarjetas de estadísticas
-    document.getElementById("max-sum-f").innerText = maxSF;
-    document.getElementById("max-sum-c").innerText = maxSC;
-    document.getElementById("max-cont-f").innerText = maxCF;
-    document.getElementById("max-cont-c").innerText = maxCC;
+    document.getElementById("tabla-area").innerHTML = html;
+    document.getElementById("msf").innerText = Math.max(...sumF);
+    document.getElementById("msc").innerText = Math.max(...sumC);
+    document.getElementById("mcf").innerText = Math.max(...contF);
+    document.getElementById("mcc").innerText = Math.max(...contC);
 }
 
-// Ejecutar al cargar
-window.onload = () => {
-    generarMatrizPro();
-    // Sincronización automática: Revisa cambios cada 1 segundo
-    setInterval(generarMatrizPro, 1000);
-};
+async function descargarPDFMatriz() {
+    const { jsPDF } = window.jspdf;
+    const canvas = await html2canvas(document.getElementById('reporte'));
+    const pdf = new jsPDF('l', 'mm', 'a4');
+    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, 270, 0);
+    pdf.save("matriz-reporte.pdf");
+}
+
+window.onload = generar;
 </script>
 </body>
 </html>
