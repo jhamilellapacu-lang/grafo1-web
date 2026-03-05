@@ -419,33 +419,34 @@ function deshacerLimpieza() {
 }
 
 function exportarGrafo() {
-    // Obtenemos los datos actuales
-    const data = localStorage.getItem("grafoData");
-    
-    if (!data || (nodos.length === 0)) {
+
+    if (nodos.length === 0) {
         alert("No hay nada que exportar.");
         return;
     }
 
-    // Pedimos el nombre al usuario
-    let nombreArchivo = prompt("Escribe el nombre con el que quieres guardar tu grafo:", "mi_grafo");
+    // Crear objeto con los datos actuales
+    const data = {
+        nodos: nodos.map(n => ({ nombre: n.nombre, x: n.x, y: n.y })),
+        aristas: aristas
+    };
 
-    // Si el usuario cancela (null) o deja vacío, no hacemos nada
-    if (nombreArchivo === null) return; 
+    // Pedir nombre al usuario
+    let nombreArchivo = prompt("Escribe el nombre del archivo:", "mi_grafo");
+
+    if (nombreArchivo === null) return;
     if (nombreArchivo.trim() === "") nombreArchivo = "mi_grafo";
 
-    // Creamos el archivo Blob
-    const blob = new Blob([data], {type: "application/json"});
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
 
-    // Creamos el enlace de descarga temporal
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = nombreArchivo.replace(/[/\\?%*:|"<>]/g, '-') + ".json"; // Limpiamos caracteres inválidos
-    document.body.appendChild(a); // Necesario para algunos navegadores
+    a.download = nombreArchivo + ".json";
+    document.body.appendChild(a);
     a.click();
 
-    // Limpieza
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 }
@@ -477,6 +478,7 @@ area.onclick = () => deseleccionarTodo();
 </script>
 </body>
 </html>
+
 
 
 
