@@ -145,19 +145,20 @@
         <button class="danger" onclick="eliminarAristaSeleccionada()">Eliminar</button>
     </div>
 
-    <div class="step">
-        <h2>Gestión de Archivos</h2>
-        <div class="btn-group">
-            <input type="text" id="nombreArchivo" placeholder="Nombre del archivo">
+   <div class="step">
+    <h2>Gestión de Archivos</h2>
 
-        <div class="btn-group">
-           <button class="secondary" onclick="exportarGrafo()">Exportar</button>
-            
-            <button class="secondary" onclick="document.getElementById('importInput').click()">Importar</button>
-        </div>
-        <input type="file" id="importInput" style="display:none" onchange="importarGrafo(event)">
-        <button class="success" style="margin-top:5px" onclick="descargarPDF()">Descargar PDF</button>
+    <input type="text" id="nombreArchivo" placeholder="Nombre del archivo">
+
+    <div class="btn-group">
+        <button class="secondary" onclick="exportarGrafo()">Exportar</button>
+        <button class="secondary" onclick="document.getElementById('importInput').click()">Importar</button>
     </div>
+
+    <input type="file" id="importInput" style="display:none" onchange="importarGrafo(event)">
+
+    <button class="success" style="margin-top:5px" onclick="descargarPDF()">Descargar PDF</button>
+</div>
 
     <div class="btn-group">
         <button class="danger" onclick="limpiarTodo()">🗑️ Limpiar</button>
@@ -492,6 +493,7 @@ area.onclick = () => deseleccionarTodo();
 </script>
 </body>
 </html>
+
 
 
 
