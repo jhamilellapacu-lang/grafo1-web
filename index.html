@@ -148,7 +148,10 @@
     <div class="step">
         <h2>Gestión de Archivos</h2>
         <div class="btn-group">
-            <button class="secondary" onclick="exportarGrafo()">Exportar</button>
+            <input type="text" id="nombreArchivo" placeholder="Nombre del archivo">
+
+        <div class="btn-group">
+           <button class="secondary" onclick="exportarGrafo()">Exportar</button>
             
             <button class="secondary" onclick="document.getElementById('importInput').click()">Importar</button>
         </div>
@@ -419,32 +422,35 @@ function deshacerLimpieza() {
 }
 
 function exportarGrafo() {
+
     const data = localStorage.getItem("grafoData");
+
     if (!data || JSON.parse(data).nodos.length === 0) {
-        return alert("No hay datos para exportar");
+        alert("No hay datos para exportar");
+        return;
     }
 
-    // Ventana emergente para pedir el nombre
-    let nombreArchivo = prompt("Ingresa el nombre para tu archivo:", "mi-grafo");
+    let nombreArchivo = document.getElementById("nombreArchivo").value.trim();
 
-    // Si el usuario cancela o deja vacío, no hacemos nada
-    if (nombreArchivo === null) return; 
-    if (nombreArchivo.trim() === "") nombreArchivo = "mi-grafo";
+    if(nombreArchivo === ""){
+        nombreArchivo = "mi-grafo";
+    }
 
-    // Asegurarnos de que tenga la extensión .json
-    if (!nombreArchivo.endsWith(".json")) {
+    if(!nombreArchivo.endsWith(".json")){
         nombreArchivo += ".json";
     }
 
     const blob = new Blob([data], {type: "application/json"});
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    
-    a.href = url; 
-    a.download = nombreArchivo; // Usamos el nombre que dio el usuario
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = nombreArchivo;
+
+    document.body.appendChild(a);
     a.click();
-    
-    // Limpieza de memoria
+    document.body.removeChild(a);
+
     URL.revokeObjectURL(url);
 }
 function importarGrafo(e) {
@@ -474,6 +480,7 @@ area.onclick = () => deseleccionarTodo();
 </script>
 </body>
 </html>
+
 
 
 
