@@ -230,7 +230,15 @@ async function descargarPDFMatriz() {
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-    pdf.save("matriz-reporte.pdf");
+    let nombre = prompt("Nombre del archivo PDF:", "matriz");
+
+  if(!nombre) nombre = "matriz";
+
+  if(!nombre.endsWith(".pdf")){
+    nombre += ".pdf";
+}
+
+pdf.save(nombre);
 }
 function volverEditor(){
     const data = localStorage.getItem("grafoData");
@@ -249,4 +257,5 @@ window.onload = () => {
 </script>
 </body>
 </html>
+
 
