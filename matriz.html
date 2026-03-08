@@ -113,7 +113,7 @@
     <div class="header-flex">
         <h1>Matriz de Adyacencia</h1>
         <div class="btn-group">
-            <a href="index.html" class="btn btn-back">← Volver al Editor</a>
+            <button onclick="volverEditor()" class="btn btn-back">← Volver al Editor</button>
             <button onclick="descargarPDFMatriz()" class="btn btn-pdf">Descargar PDF</button>
         </div>
     </div>
@@ -232,11 +232,21 @@ async function descargarPDFMatriz() {
     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
     pdf.save("matriz-reporte.pdf");
 }
+function volverEditor(){
+    const data = localStorage.getItem("grafoData");
 
+    if(data){
+        sessionStorage.setItem("grafoDataTemp", data);
+    }
+
+    window.location.href = "index.html";
+}
 window.onload = () => {
     generarMatrizPro();
     setInterval(generarMatrizPro, 1000);
 };
+
 </script>
 </body>
 </html>
+
