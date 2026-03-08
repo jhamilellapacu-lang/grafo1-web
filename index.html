@@ -434,14 +434,19 @@ function deshacerLimpieza() {
     } else { alert("No hay nada que recuperar"); }
 }
 
-function exportarGrafo() {
+function exportarGrafo(){
 
-    const data = localStorage.getItem("grafoData");
+    const raw = localStorage.getItem("grafoData");
 
-    if (!data || JSON.parse(data).nodos.length === 0) {
+    if(!raw){
         alert("No hay datos para exportar");
         return;
     }
+
+    const obj = JSON.parse(raw);
+
+    const jsonOrdenado = JSON.stringify(obj, null, 4); 
+    // 4 espacios de indentación
 
     let nombreArchivo = document.getElementById("nombreArchivo").value.trim();
 
@@ -453,7 +458,7 @@ function exportarGrafo() {
         nombreArchivo += ".json";
     }
 
-    const blob = new Blob([data], {type: "application/json"});
+    const blob = new Blob([jsonOrdenado], {type:"application/json"});
     const url = URL.createObjectURL(blob);
 
     const a = document.createElement("a");
@@ -477,15 +482,29 @@ function importarGrafo(e) {
 }
 
 
-
 async function descargarPDF() {
+
+    let nombre = document.getElementById("nombreArchivo").value.trim();
+
+    if(nombre === ""){
+        nombre = "mi-grafo";
+    }
+
+    if(!nombre.endsWith(".pdf")){
+        nombre += ".pdf";
+    }
+
     const { jsPDF } = window.jspdf;
+
     const canvas = await html2canvas(document.getElementById('area'));
     const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('l', 'mm', 'a4');
-    pdf.text("Reporte de Grafo", 10, 10);
-    pdf.addImage(imgData, 'PNG', 10, 20, 260, 150);
-    pdf.save("mi-grafo.pdf");
+
+    const pdf = new jsPDF('l','mm','a4');
+
+    pdf.text("Reporte de Grafo",10,10);
+    pdf.addImage(imgData,'PNG',10,20,260,150);
+
+    pdf.save(nombre);
 }
 
 window.onload = cargarDesdeLocalStorage;
@@ -493,6 +512,7 @@ area.onclick = () => deseleccionarTodo();
 </script>
 </body>
 </html>
+
 
 
 
