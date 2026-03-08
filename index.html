@@ -191,11 +191,23 @@ function guardarEnLocalStorage() {
 }
 
 function cargarDesdeLocalStorage() {
-    const raw = localStorage.getItem("grafoData");
+
+    let raw = localStorage.getItem("grafoData");
+
+    const temp = sessionStorage.getItem("grafoDataTemp");
+    if(temp){
+        raw = temp;
+        localStorage.setItem("grafoData", temp);
+        sessionStorage.removeItem("grafoDataTemp");
+    }
+
     if (raw) {
         const data = JSON.parse(raw);
+
         data.nodos.forEach(n => recrearNodo(n.nombre, n.x, n.y));
-        aristas = data.aristas;
+
+        aristas = data.aristas || [];
+
         actualizarVista();
     }
 }
@@ -480,6 +492,7 @@ area.onclick = () => deseleccionarTodo();
 </script>
 </body>
 </html>
+
 
 
 
