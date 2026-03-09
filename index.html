@@ -234,6 +234,15 @@ function recrearNodo(nombre, x, y) {
         e.stopPropagation();
         if (nodoSeleccionado && nodoSeleccionado !== nodoObj) {
             const peso = Math.max(0, parseInt(document.getElementById('edgeWeight').value) || 1);
+            let existente = aristas.find(a =>
+            a.from === nodoSeleccionado.nombre &&
+            a.to === nodoObj.nombre
+        );
+
+        if(existente){
+            alert("⚠️ Esta arista ya existe. Edita su valor en el editor.");
+            return;
+        }
             aristas.push({ from: nodoSeleccionado.nombre, to: nodoObj.nombre, peso: peso });
             deseleccionarTodo();
         } else {
@@ -245,6 +254,15 @@ function recrearNodo(nombre, x, y) {
     div.ondblclick = (e) => {
         e.stopPropagation();
         const peso = Math.max(0, parseInt(document.getElementById('edgeWeight').value) || 1);
+         let existente = aristas.find(a =>
+        a.from === nodoObj.nombre &&
+        a.to === nodoObj.nombre
+    );
+
+    if(existente){
+        alert("⚠️ Este bucle ya existe. Edítalo en el editor.");
+        return;
+    }
         aristas.push({ from: nodoObj.nombre, to: nodoObj.nombre, peso: peso });
         actualizarVista();
     };
@@ -512,6 +530,7 @@ area.onclick = () => deseleccionarTodo();
 </script>
 </body>
 </html>
+
 
 
 
