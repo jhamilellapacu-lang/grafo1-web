@@ -304,6 +304,58 @@ function exportarJSONMatriz(){
 
     URL.revokeObjectURL(url);
 }
+    async function descargarReporteCompleto(){
+
+    const { jsPDF } = window.jspdf;
+
+    const pdf = new jsPDF("p","mm","a4");
+
+    let nombre = document.getElementById("nombreArchivoMatriz").value.trim();
+
+    if(nombre===""){
+        nombre="reporte-grafo";
+    }
+
+    if(!nombre.endsWith(".pdf")){
+        nombre+=".pdf";
+    }
+
+    pdf.setFontSize(18);
+    pdf.text("Reporte de Grafo",10,15);
+
+    const canvas = await html2canvas(document.getElementById("reporte"));
+
+    const imgData = canvas.toDataURL("image/png");
+
+    pdf.addImage(imgData,"PNG",10,25,190,120);
+
+    const data = JSON.parse(localStorage.getItem("grafoData"));
+
+    let y = 160;
+
+    pdf.setFontSize(14);
+    pdf.text("Lista de Nodos:",10,y);
+
+    y+=10;
+
+    data.nodos.forEach(n=>{
+        pdf.text("- "+n.nombre,10,y);
+        y+=7;
+    });
+
+    y+=5;
+
+    pdf.text("Lista de Aristas:",10,y);
+
+    y+=10;
+
+    data.aristas.forEach(a=>{
+        pdf.text(`${a.from} → ${a.to} (peso ${a.peso})`,10,y);
+        y+=7;
+    });
+
+    pdf.save(nombre);
+}
 function volverEditor(){
     const data = localStorage.getItem("grafoData");
 
@@ -322,6 +374,7 @@ window.onload = () => {
 </script>
 </body>
 </html>
+
 
 
 
